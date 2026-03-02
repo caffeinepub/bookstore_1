@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "BookStore community app with book catalog, discount pricing, order placement, order confirmation, order history, and vendor/admin panel. No WhatsApp/email integration (not supported). Orders stored in canister and viewable in a table.",
+  "architectural_notes": [
+    "No WhatsApp/email integration - order confirmations are on-screen only",
+    "Orders stored in canister backend; viewable as a table (no direct CSV file export)"
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Warm bookstore logo mark — an open book with a subtle leaf or candle motif in earthy brown and green tones (bookstore-logo.dim_200x200.png)\n- Hero banner for the catalog page — a cozy bookshelf scene with warm lighting, books, and a parchment texture overlay (catalog-hero.dim_1200x400.png)\n- Placeholder book cover for books without a cover image — a decorative parchment-textured rectangle with a subtle ornamental border (book-placeholder.dim_300x420.png)",
+  "existing_features": [
+    {
+      "id": "feature-build-a-book-catalog-page-that-displays-all-available-books-in-a-grid-each-book-card-shows-cover-image-title-author-category-tag-original-price-with-strikethrough-discount-badge-and-final-price-include-a-search-bar-and-category-filter",
+      "title": "Build a Book Catalog page that displays all available books in a grid. Each book card shows cover image, title, author, category tag, original price with strikethrough, discount badge, and final price. Include a search bar and category filter.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-book-detail-page-that-shows-the-full-book-description-cover-image-author-category-price-breakdown-original-price-discount-amount-final-price-and-an-add-to-cart-button-navigating-to-this-page-should-be-possible-by-clicking-a-book-card-from-the-catalog",
+      "title": "Build a Book Detail page that shows the full book description, cover image, author, category, price breakdown (original price, discount amount, final price), and an 'Add to Cart' button. Navigating to this page should be possible by clicking a book card from the catalog.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-an-order-cart-page-that-lists-all-books-added-by-the-user-shows-per-item-price-and-quantity-controls-displays-the-order-subtotal-and-includes-a-proceed-to-checkout-button-users-must-be-authenticated-via-internet-identity-to-access-the-cart",
+      "title": "Build an Order Cart page that lists all books added by the user, shows per-item price and quantity controls, displays the order subtotal, and includes a 'Proceed to Checkout' button. Users must be authenticated (via Internet Identity) to access the cart.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-checkout-page-where-the-authenticated-user-enters-their-name-and-contact-details-reviews-the-final-order-summary-and-clicks-place-order-to-submit-the-order-to-the-backend-show-a-loading-state-while-the-order-is-being-placed",
+      "title": "Build a Checkout page where the authenticated user enters their name and contact details, reviews the final order summary, and clicks 'Place Order' to submit the order to the backend. Show a loading state while the order is being placed.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-an-order-confirmation-page-that-is-displayed-after-a-successful-order-placement-it-must-show-the-orderid-list-of-purchased-items-with-prices-total-amount-paid-buyer-name-contact-and-the-order-timestamp",
+      "title": "Build an Order Confirmation page that is displayed after a successful order placement. It must show the orderId, list of purchased items with prices, total amount paid, buyer name, contact, and the order timestamp.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-an-order-history-page-for-authenticated-users-that-lists-all-their-past-orders-each-entry-shows-orderid-order-date-total-amount-and-a-summary-of-items-orders-should-be-fetched-from-the-backend-using-the-buyer-s-principal",
+      "title": "Build an Order History page for authenticated users that lists all their past orders. Each entry shows orderId, order date, total amount, and a summary of items. Orders should be fetched from the backend using the buyer's principal.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-vendor-admin-panel-accessible-only-to-a-designated-admin-principal-the-panel-must-include-1-a-books-management-tab-to-add-new-books-edit-existing-books-and-delete-books-via-a-form-and-table-2-an-orders-tab-that-shows-all-orders-in-a-searchable-table-with-columns-orderid-buyer-name-contact-items-summary-total-and-date",
+      "title": "Build a Vendor/Admin Panel accessible only to a designated admin principal. The panel must include: (1) a Books Management tab to add new books, edit existing books, and delete books via a form and table; (2) an Orders tab that shows all orders in a searchable table with columns: orderId, buyer name, contact, items summary, total, and date.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-warm-bookshop-inspired-visual-theme-throughout-the-app-use-earthy-tones-warm-browns-cream-parchment-backgrounds-deep-forest-green-accents-serif-style-headings-for-book-titles-and-a-clean-card-based-layout-navigation-should-include-a-top-header-with-logo-main-nav-links-catalog-my-orders-cart-and-a-login-logout-button-ensure-the-design-is-responsive-for-mobile-and-desktop",
+      "title": "Apply a warm, bookshop-inspired visual theme throughout the app. Use earthy tones (warm browns, cream/parchment backgrounds, deep forest green accents), serif-style headings for book titles, and a clean card-based layout. Navigation should include a top header with logo, main nav links (Catalog, My Orders, Cart), and a login/logout button. Ensure the design is responsive for mobile and desktop.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Book catalog with categories, search, cover, title, author, original price, discount %, and final price",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Book detail page with full description, price breakdown, and Add to Order button",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Order cart to review selected books before placing order",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Checkout flow where user enters name/contact details and confirms order",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Order confirmation screen showing order ID, items, total paid, and timestamp",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Order history page for users to view past orders",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Vendor/admin panel to add/edit books and view all orders in a table",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Create a backend data model and API for Books with fields: id, title, author, description, coverImageUrl, category, originalPrice, discountPercent, finalPrice (computed), and stockAvailable. Support CRUD operations (create, read, update, delete) accessible to vendor/admin role.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Create a backend data model and API for Orders with fields: orderId, buyerPrincipal, buyerName, buyerContact, items (array of bookId + quantity + priceAtPurchase), totalAmount, status, and createdAt timestamp. Expose functions to place a new order, retrieve orders by buyer, and retrieve all orders (admin only).",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "BookStore",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

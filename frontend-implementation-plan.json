@@ -1,0 +1,230 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "BookStore Community App – Frontend Implementation",
+  "requirements": [
+    {
+      "id": "REQ-3",
+      "summary": "Build Book Catalog page with search and category filtering",
+      "acceptanceCriteria": [
+        "All books are listed in a responsive grid.",
+        "Search filters books by title or author in real time.",
+        "Category filter narrows the displayed books.",
+        "Discount badge is visible when discountPercent > 0.",
+        "Original and final prices are both shown clearly."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/CatalogPage.tsx",
+          "operation": "create",
+          "description": "Create the Book Catalog page with a hero banner using the generated catalog-hero.dim_1200x400.png from frontend/public/assets/generated/catalog-hero.dim_1200x400.png. Display all books in a responsive grid with book cards. Include search bar for title/author filtering and category dropdown filter. Each book card shows cover image (or placeholder book-placeholder.dim_300x420.png from frontend/public/assets/generated/book-placeholder.dim_300x420.png), title with serif styling, author, category tag, original price with strikethrough, discount badge (when discount > 0), and final price. Use warm bookshop colors. Cards are clickable and navigate to detail page."
+        },
+        {
+          "path": "frontend/src/hooks/useBooks.ts",
+          "operation": "create",
+          "description": "Create React Query hook to fetch all books from backend.getAllBooks(). Return loading, error, and books data states. Enable caching with queryKey ['books']."
+        },
+        {
+          "path": "frontend/src/components/BookCard.tsx",
+          "operation": "create",
+          "description": "Create reusable BookCard component that displays book cover (use frontend/public/assets/generated/book-placeholder.dim_300x420.png as fallback), title, author, category tag, price information with strikethrough on original price, discount badge, and final price. Apply serif headings and warm color palette. Component receives Book object as prop and handles click to navigate to detail page."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Build Book Detail page with full information and Add to Cart",
+      "acceptanceCriteria": [
+        "Clicking a book card navigates to the detail page for that book.",
+        "All book fields are displayed including full description.",
+        "Price breakdown clearly shows original, discount, and final price.",
+        "'Add to Cart' button adds the book to the local cart state."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/BookDetailPage.tsx",
+          "operation": "create",
+          "description": "Create Book Detail page that fetches a single book by ID from route params using backend.getBook(). Display large cover image (with frontend/public/assets/generated/book-placeholder.dim_300x420.png fallback), title with serif styling, author, category, full description, and price breakdown showing original price, discount amount calculation, and final price. Include 'Add to Cart' button that calls cart context to add the book. Use warm bookshop theme colors and responsive layout."
+        },
+        {
+          "path": "frontend/src/hooks/useBook.ts",
+          "operation": "create",
+          "description": "Create React Query hook to fetch a single book by ID using backend.getBook(bookId). Accept bookId parameter, return loading, error, and book data states."
+        },
+        {
+          "path": "frontend/src/context/CartContext.tsx",
+          "operation": "create",
+          "description": "Create React Context for shopping cart state management. Provide addToCart, removeFromCart, updateQuantity, clearCart functions and cart items array. Persist cart in sessionStorage. Export CartProvider and useCart hook."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Build Order Cart page with item management and authentication guard",
+      "acceptanceCriteria": [
+        "Cart persists across page navigation within the session.",
+        "User can change quantity or remove items.",
+        "Subtotal updates dynamically.",
+        "Unauthenticated users are prompted to log in before accessing the cart."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/CartPage.tsx",
+          "operation": "create",
+          "description": "Create Order Cart page that uses the authorization component to require authentication before displaying cart contents. Show authentication prompt if user is not logged in. Display all cart items from CartContext with book details, quantity controls (+/- buttons), remove button, and per-item subtotal. Show dynamic order subtotal at bottom. Include 'Proceed to Checkout' button that navigates to checkout. Use warm bookshop styling and responsive layout."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Build Checkout page with buyer details form and order submission",
+      "acceptanceCriteria": [
+        "Name and contact fields are required and validated before submission.",
+        "Order summary shows all cart items, quantities, and total.",
+        "'Place Order' calls the backend and clears the cart on success.",
+        "A loading indicator is shown during the backend call."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/CheckoutPage.tsx",
+          "operation": "create",
+          "description": "Create Checkout page that requires authentication using the authorization component. Display order summary from CartContext showing all items, quantities, and total. Include form for buyer name and contact with validation. Use the authorization component's getCallerUserProfile to pre-fill the buyer name if a user profile exists. Implement 'Place Order' button that validates inputs, shows loading state, calls backend.placeOrder() with cart items, and navigates to confirmation page on success. Clear cart after successful order placement. Apply warm bookshop theme."
+        },
+        {
+          "path": "frontend/src/hooks/usePlaceOrder.ts",
+          "operation": "create",
+          "description": "Create React Query mutation hook for placing orders. Call backend.placeOrder() with buyer name, contact, and order items. Return mutation state including loading, error, and success. Invalidate relevant queries on success."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Build Order Confirmation page displaying successful order details",
+      "acceptanceCriteria": [
+        "All order fields are displayed correctly.",
+        "The page is only accessible after a successful order submission.",
+        "User can navigate back to the catalog from this page."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/OrderConfirmationPage.tsx",
+          "operation": "create",
+          "description": "Create Order Confirmation page that displays orderId, list of purchased items with prices and quantities, total amount paid, buyer name, contact, and order timestamp. Receive order data via navigation state from CheckoutPage. Show success message and 'Back to Catalog' button. Use warm bookshop colors and celebratory styling. Redirect to catalog if accessed without order data."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Build Order History page showing user's past orders",
+      "acceptanceCriteria": [
+        "Only the logged-in user's orders are shown.",
+        "Each order row displays orderId, date, total, and item summary.",
+        "Orders are sorted by date descending (most recent first).",
+        "An empty state message is shown if the user has no orders."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/OrderHistoryPage.tsx",
+          "operation": "create",
+          "description": "Create Order History page that requires authentication using the authorization component. Fetch user's orders using backend.getOrdersByBuyer(). Display orders in a list sorted by date descending. Each order card shows orderId, formatted date, total amount, and items summary. Show empty state message if no orders exist. Apply warm bookshop styling and responsive layout."
+        },
+        {
+          "path": "frontend/src/hooks/useOrderHistory.ts",
+          "operation": "create",
+          "description": "Create React Query hook to fetch buyer's order history using backend.getOrdersByBuyer(). Return loading, error, and orders array. Enable query only when user is authenticated."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Build Vendor/Admin Panel with Books Management and Orders viewing",
+      "acceptanceCriteria": [
+        "Non-admin users cannot access or see the admin panel.",
+        "Admin can add a new book using a form with all required fields.",
+        "Admin can edit any existing book's details.",
+        "Admin can delete a book.",
+        "All orders are displayed in a table with all required columns.",
+        "Orders table supports search by buyer name or orderId."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminPanelPage.tsx",
+          "operation": "create",
+          "description": "Create Admin Panel page that uses the authorization component to verify admin role using backend.isCallerAdmin() before displaying content. Show access denied message for non-admin users. Include tabbed interface with 'Books Management' and 'Orders' tabs. Books tab shows table of all books with edit/delete actions and 'Add Book' button. Orders tab shows searchable table with columns: orderId, buyer name, contact, items summary, total, and date. Include search filter for buyer name and orderId. Use warm bookshop colors and admin-appropriate styling."
+        },
+        {
+          "path": "frontend/src/components/admin/BookFormModal.tsx",
+          "operation": "create",
+          "description": "Create modal component for adding/editing books. Include form fields for all Book properties: title, author, description, coverImageUrl, category, originalPrice, discountPercent, stockAvailable. Validate required fields. Call backend.addBook() for new books or backend.updateBook() for edits. Show loading state during submission. Close modal and refresh books list on success."
+        },
+        {
+          "path": "frontend/src/components/admin/BooksManagementTab.tsx",
+          "operation": "create",
+          "description": "Create Books Management tab component displaying all books in a table. Show book details with edit and delete action buttons. Include 'Add New Book' button that opens BookFormModal. Handle book deletion via backend.deleteBook() with confirmation dialog. Refresh books list after mutations."
+        },
+        {
+          "path": "frontend/src/components/admin/OrdersManagementTab.tsx",
+          "operation": "create",
+          "description": "Create Orders Management tab component that fetches all orders using backend.getAllOrders(). Display orders in a searchable table with columns: orderId, buyer name, contact, items summary, total, and formatted date. Implement client-side search filtering by buyer name or orderId. Use warm colors and table styling consistent with admin theme."
+        },
+        {
+          "path": "frontend/src/hooks/useAdminBooks.ts",
+          "operation": "create",
+          "description": "Create React Query mutations for admin book operations: addBook, updateBook, deleteBook. Each mutation calls corresponding backend capability and invalidates books query on success."
+        },
+        {
+          "path": "frontend/src/hooks/useAllOrders.ts",
+          "operation": "create",
+          "description": "Create React Query hook to fetch all orders using backend.getAllOrders(). Only enable query when user is admin. Return loading, error, and orders array."
+        }
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "summary": "Apply warm bookshop-inspired theme and responsive navigation",
+      "acceptanceCriteria": [
+        "Consistent color palette using warm browns, cream, and green accents.",
+        "Serif or elegant headings for book titles and section headers.",
+        "Top navigation bar with logo, main links, cart icon with item count, and auth button.",
+        "All pages are responsive and usable on mobile screens."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add custom CSS variables and styles for warm bookshop theme. Define color palette with warm browns (#8B4513, #A0522D), cream/parchment backgrounds (#FFF8DC, #FAEBD7), and deep forest green accents (#2F4F4F, #3B5323). Import and configure serif font family for headings (e.g., 'Crimson Text', 'Merriweather'). Apply global typography styles with serif headings and sans-serif body text. Ensure responsive base styles."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Extend Tailwind theme with custom bookshop color palette: warmBrown, cream, parchment, forestGreen. Add serif font family to theme.extend.fontFamily for headings. Configure custom spacing and border radius values for card-based layouts if needed."
+        },
+        {
+          "path": "frontend/src/components/layout/Header.tsx",
+          "operation": "create",
+          "description": "Create responsive header navigation component with warm bookshop styling. Display bookstore logo using the generated bookstore-logo.dim_200x200.png from frontend/public/assets/generated/bookstore-logo.dim_200x200.png on the left. Include main navigation links: Catalog, My Orders, Cart (with cart item count badge from CartContext). Use the authorization component to display LoginButton on the right. Show Admin Panel link only when user is admin (check via backend.isCallerAdmin()). Apply warm color palette, ensure mobile responsiveness with hamburger menu."
+        },
+        {
+          "path": "frontend/src/components/layout/Layout.tsx",
+          "operation": "create",
+          "description": "Create main Layout component that wraps Header and page content with consistent warm bookshop styling. Apply parchment background color and proper spacing. Ensure responsive container widths for mobile and desktop."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wrap application with CartProvider from CartContext. Configure React Router with routes for all pages: CatalogPage (/), BookDetailPage (/book/:id), CartPage (/cart), CheckoutPage (/checkout), OrderConfirmationPage (/order-confirmation), OrderHistoryPage (/orders), and AdminPanelPage (/admin). Wrap routes with Layout component. Set CatalogPage as the default route (/)."
+        },
+        {
+          "path": "frontend/src/components/auth/ProfileSetupModal.tsx",
+          "operation": "create",
+          "description": "Create modal component for first-time user profile setup as required by the authorization component. Display when user is authenticated but has no profile (getCallerUserProfile returns null). Include form for name and contact fields. Call backend.saveCallerUserProfile() on submit. Prevent closing modal until profile is saved. Apply warm bookshop styling."
+        },
+        {
+          "path": "frontend/src/components/auth/AccessDeniedScreen.tsx",
+          "operation": "create",
+          "description": "Create AccessDeniedScreen component for unauthorized access attempts as required by the authorization component. Display friendly message indicating insufficient permissions. Include button to return to catalog. Apply warm bookshop theme."
+        }
+      ]
+    }
+  ]
+}

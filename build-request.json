@@ -1,0 +1,224 @@
+{
+  "kind": "build_request",
+  "title": "BookStore Community App – Full End-to-End Build",
+  "projectName": "BookStore Community",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Create a backend data model and API for Books with fields: id, title, author, description, coverImageUrl, category, originalPrice, discountPercent, finalPrice (computed), and stockAvailable. Support CRUD operations (create, read, update, delete) accessible to vendor/admin role.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "list of Books",
+          "prices with discount",
+          "Vendor/Admin Panel - Add/edit books"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Books can be created with all required fields.",
+        "finalPrice is correctly computed as originalPrice minus discount.",
+        "Books can be retrieved, updated, and deleted.",
+        "Only admin-flagged callers can mutate book data."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Create a backend data model and API for Orders with fields: orderId, buyerPrincipal, buyerName, buyerContact, items (array of bookId + quantity + priceAtPurchase), totalAmount, status, and createdAt timestamp. Expose functions to place a new order, retrieve orders by buyer, and retrieve all orders (admin only).",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "place a order",
+          "Order Confirmation Screen - Shows full order summary with order ID, items, total paid, and timestamp",
+          "Order History"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Placing an order persists all fields including a unique orderId and timestamp.",
+        "A buyer can retrieve their own order history.",
+        "Admin can retrieve all orders.",
+        "Orders are immutable after placement (no edit by buyer)."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Build a Book Catalog page that displays all available books in a grid. Each book card shows cover image, title, author, category tag, original price with strikethrough, discount badge, and final price. Include a search bar and category filter.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "list of Books",
+          "Book Catalog - List of books with cover, title, author, original price, discount %, and final price"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All books are listed in a responsive grid.",
+        "Search filters books by title or author in real time.",
+        "Category filter narrows the displayed books.",
+        "Discount badge is visible when discountPercent > 0.",
+        "Original and final prices are both shown clearly."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Build a Book Detail page that shows the full book description, cover image, author, category, price breakdown (original price, discount amount, final price), and an 'Add to Cart' button. Navigating to this page should be possible by clicking a book card from the catalog.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Book Detail Page - Full description, price breakdown, 'Add to Order' button"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Clicking a book card navigates to the detail page for that book.",
+        "All book fields are displayed including full description.",
+        "Price breakdown clearly shows original, discount, and final price.",
+        "'Add to Cart' button adds the book to the local cart state."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Build an Order Cart page that lists all books added by the user, shows per-item price and quantity controls, displays the order subtotal, and includes a 'Proceed to Checkout' button. Users must be authenticated (via Internet Identity) to access the cart.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Order Cart - Review selected books before placing order"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Cart persists across page navigation within the session.",
+        "User can change quantity or remove items.",
+        "Subtotal updates dynamically.",
+        "Unauthenticated users are prompted to log in before accessing the cart."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Build a Checkout page where the authenticated user enters their name and contact details, reviews the final order summary, and clicks 'Place Order' to submit the order to the backend. Show a loading state while the order is being placed.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Checkout - User enters name/contact details, confirms order"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Name and contact fields are required and validated before submission.",
+        "Order summary shows all cart items, quantities, and total.",
+        "'Place Order' calls the backend and clears the cart on success.",
+        "A loading indicator is shown during the backend call."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Build an Order Confirmation page that is displayed after a successful order placement. It must show the orderId, list of purchased items with prices, total amount paid, buyer name, contact, and the order timestamp.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Order Confirmation Screen - Shows full order summary with order ID, items, total paid, and timestamp"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All order fields are displayed correctly.",
+        "The page is only accessible after a successful order submission.",
+        "User can navigate back to the catalog from this page."
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Build an Order History page for authenticated users that lists all their past orders. Each entry shows orderId, order date, total amount, and a summary of items. Orders should be fetched from the backend using the buyer's principal.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Order History - Users can view past orders"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Only the logged-in user's orders are shown.",
+        "Each order row displays orderId, date, total, and item summary.",
+        "Orders are sorted by date descending (most recent first).",
+        "An empty state message is shown if the user has no orders."
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Build a Vendor/Admin Panel accessible only to a designated admin principal. The panel must include: (1) a Books Management tab to add new books, edit existing books, and delete books via a form and table; (2) an Orders tab that shows all orders in a searchable table with columns: orderId, buyer name, contact, items summary, total, and date.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Vendor/Admin Panel - Add/edit books, view all orders in a table"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Non-admin users cannot access or see the admin panel.",
+        "Admin can add a new book using a form with all required fields.",
+        "Admin can edit any existing book's details.",
+        "Admin can delete a book.",
+        "All orders are displayed in a table with all required columns.",
+        "Orders table supports search by buyer name or orderId."
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "text": "Apply a warm, bookshop-inspired visual theme throughout the app. Use earthy tones (warm browns, cream/parchment backgrounds, deep forest green accents), serif-style headings for book titles, and a clean card-based layout. Navigation should include a top header with logo, main nav links (Catalog, My Orders, Cart), and a login/logout button. Ensure the design is responsive for mobile and desktop.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Consistent color palette using warm browns, cream, and green accents.",
+        "Serif or elegant headings for book titles and section headers.",
+        "Top navigation bar with logo, main links, cart icon with item count, and auth button.",
+        "All pages are responsive and usable on mobile screens."
+      ]
+    }
+  ],
+  "constraints": [
+    "No WhatsApp, SMS, or email integration — order confirmation is in-app only.",
+    "No CSV file generation or external storage — all order data is stored in the canister.",
+    "Authentication must use Internet Identity only.",
+    "All Motoko logic must remain in a single actor in backend/main.mo.",
+    "Do not modify any files listed in frontend.immutablePaths."
+  ],
+  "nonGoals": [
+    "WhatsApp or OpenClaw API integration.",
+    "Email order confirmations.",
+    "CSV export of orders.",
+    "External payment gateway integration.",
+    "Real-time order status updates via WebSockets."
+  ],
+  "imageRequirements": {
+    "required": [
+      "Warm bookstore logo mark — an open book with a subtle leaf or candle motif in earthy brown and green tones (bookstore-logo.dim_200x200.png)",
+      "Hero banner for the catalog page — a cozy bookshelf scene with warm lighting, books, and a parchment texture overlay (catalog-hero.dim_1200x400.png)",
+      "Placeholder book cover for books without a cover image — a decorative parchment-textured rectangle with a subtle ornamental border (book-placeholder.dim_300x420.png)"
+    ],
+    "edits": []
+  }
+}
