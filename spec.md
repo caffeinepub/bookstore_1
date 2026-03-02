@@ -1,11 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Auto-grant admin access to the deployer's Internet Identity principal on canister initialization, and ensure the frontend reflects admin status immediately after login without a page refresh.
+**Goal:** Replace Internet Identity-based admin authentication on the `/admin` route with a simple hardcoded password prompt.
 
 **Planned changes:**
-- On canister initialization, automatically assign the caller's principal as the admin if no admin is already set
-- Update the frontend so that after Internet Identity login completes, the admin status is re-fetched automatically
-- Admin navigation links and the admin panel become accessible immediately after login without requiring a page reload
+- Remove Internet Identity / principal-based access control from the Admin Panel page
+- Add a password prompt screen shown when navigating to `/admin` without an active admin session
+- Grant access to admin panel tabs (Books and Orders) when the correct hardcoded password is entered
+- Show a visible error message when an incorrect password is entered
+- Persist the admin session for the duration of the browser session using sessionStorage or React state
+- Leave all other parts of the application (catalog, checkout, order history, cart) unchanged
 
-**User-visible outcome:** After deploying the canister and logging in with Internet Identity, the logged-in account automatically has admin access and can access the admin panel without any manual refresh or additional setup steps.
+**User-visible outcome:** Visiting `/admin` shows a password prompt instead of an Internet Identity login. Entering the correct hardcoded password immediately grants access to the admin panel, and the session persists without re-prompting during the same browser session.

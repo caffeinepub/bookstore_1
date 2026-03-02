@@ -1,54 +1,62 @@
 {
   "kind": "build_request",
-  "title": "Auto-grant admin access to logged-in Internet Identity principal",
+  "title": "Replace Internet Identity admin auth with hardcoded password access control",
   "projectName": "Gopal Book Agency",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the backend so that the first Internet Identity principal to log in is automatically set as the admin, or if an admin is already set, provide a way to bootstrap admin access by setting the deployer's principal as the admin on canister initialization.",
-      "target": "backend",
+      "text": "Replace the Internet Identity authentication requirement on the Admin Panel (/admin route) with a simple hardcoded password-based access control. When a user navigates to /admin, display a password prompt screen. If the correct hardcoded password is entered, grant access to the admin panel. If the password is incorrect, show an error and keep the user on the prompt screen. Store the admin session state in React component state or sessionStorage so the user is not re-prompted on page navigation within the same session.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-6",
+          "msg-7"
         ],
         "quotes": [
-          "your logged-in account automatically has admin access"
+          "like a simple password or a hardcoded admin role",
+          "1. (like a simple password or a hardcoded admin role) only"
         ]
       },
       "acceptanceCriteria": [
-        "On canister initialization, the deployer's principal (caller of the init function) is automatically assigned as the admin",
-        "If an admin principal is already set, it is preserved and not overwritten",
-        "The isAdmin query returns true for the principal set during initialization"
+        "Navigating to /admin no longer triggers Internet Identity login",
+        "A password prompt UI is shown when accessing /admin without an active admin session",
+        "Entering the correct hardcoded password grants access to the admin panel tabs (Books and Orders)",
+        "Entering an incorrect password shows a visible error message and does not grant access",
+        "Admin session persists for the duration of the browser session (sessionStorage or React state) so the user is not re-prompted unnecessarily",
+        "The rest of the application (catalog, checkout, order history, cart) is unaffected"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update the frontend admin check flow so that after a user logs in with Internet Identity, the app immediately reflects their admin status without requiring a manual page refresh.",
+      "text": "Remove the admin role check based on Internet Identity principal from the AdminPanelPage. The access control logic should rely solely on the hardcoded password session. The AccessDeniedScreen component may still be used if the password has not been entered, but it should not reference Internet Identity login.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-6",
+          "msg-7"
         ],
         "quotes": [
-          "your logged-in account automatically has admin access"
+          "like a simple password or a hardcoded admin role"
         ]
       },
       "acceptanceCriteria": [
-        "After Internet Identity login completes, the admin status query is re-fetched automatically",
-        "Admin navigation links and the admin panel become accessible without requiring a page reload",
-        "Non-admin users still see the AccessDeniedScreen when navigating to the admin panel"
+        "AdminPanelPage no longer calls any Internet Identity or principal-based admin role check",
+        "The admin panel is accessible purely by entering the correct hardcoded password",
+        "No Internet Identity login prompt appears when accessing /admin"
       ]
     }
   ],
   "constraints": [
-    "Do not remove or break existing Internet Identity authentication flow",
-    "Do not change the existing book catalog, order, or user profile data structures"
+    "Only the admin panel access control should be changed — do not modify authentication on any other part of the app",
+    "Do not remove Internet Identity hooks or provider from the rest of the application",
+    "Do not modify immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui"
   ],
   "nonGoals": [
-    "Adding a traditional username/password authentication system",
-    "Supporting multiple admin accounts via a UI management panel",
-    "Changing any branding or visual design"
+    "Removing Internet Identity from the entire application",
+    "Building a dynamic admin user management system",
+    "Storing admin credentials in the backend or any database",
+    "Adding role-based access control beyond a single hardcoded admin password"
   ],
   "imageRequirements": {
     "required": [],

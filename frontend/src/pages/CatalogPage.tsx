@@ -1,74 +1,92 @@
 import React, { useState, useMemo } from 'react';
-import { Search, SlidersHorizontal, BookOpen } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import BookCard from '../components/BookCard';
 import { useGetAllBooks } from '../hooks/useQueries';
+import { BookCategory } from '../backend';
+import BookCard from '../components/BookCard';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Search, BookOpen, SlidersHorizontal } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+const CATEGORIES = [
+  { value: 'all', label: 'All Categories' },
+  { value: BookCategory.Journals, label: 'Journals' },
+  { value: BookCategory.ProfessionalBooks, label: 'Professional Books' },
+  { value: BookCategory.BareActs, label: 'Bare Acts' },
+  { value: BookCategory.AcademicBooks, label: 'Academic Books' },
+];
 
 export default function CatalogPage() {
+  const { data: books, isLoading } = useGetAllBooks();
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const { data: books = [], isLoading } = useGetAllBooks();
-
-  const categories = useMemo(() => {
-    const cats = Array.from(new Set(books.map(b => b.category).filter(Boolean)));
-    return cats.sort();
-  }, [books]);
-
-  const filtered = useMemo(() => {
+  const filteredBooks = useMemo(() => {
+    if (!books) return [];
     return books.filter(book => {
       const matchesSearch =
         !search ||
         book.title.toLowerCase().includes(search.toLowerCase()) ||
-        book.author.toLowerCase().includes(search.toLowerCase());
-      const matchesCategory = category === 'all' || book.category === category;
+        (book.author && book.author.toLowerCase().includes(search.toLowerCase()));
+      const matchesCategory =
+        selectedCategory === 'all' || (book.category as string) === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [books, search, category]);
+  }, [books, search, selectedCategory]);
 
   return (
     <div>
       {/* Hero Banner */}
-      <div className="relative h-48 md:h-64 overflow-hidden">
-        <img
-          src="/assets/generated/catalog-hero.dim_1200x400.png"
-          alt="BookStore catalog"
-          className="w-full h-full object-cover"
+      <div className="relative overflow-hidden bg-primary text-primary-foreground">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: 'url(/assets/generated/catalog-hero.dim_1200x400.png)' }}
         />
-        <div className="absolute inset-0 bg-foreground/40 flex flex-col items-center justify-center text-center px-4">
-          <h1 className="font-serif text-3xl md:text-5xl font-bold text-primary-foreground mb-2 drop-shadow-md">
-            Our Book Collection
+        <div className="relative max-w-5xl mx-auto px-4 py-16 text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <img
+              src="/assets/generated/bookstore-logo.dim_200x200.png"
+              alt="Gopal Book Agency"
+              className="w-14 h-14 rounded-full object-cover border-2 border-primary-foreground/30"
+            />
+          </div>
+          <h1 className="font-serif text-4xl md:text-5xl font-bold mb-3">
+            Gopal Book Agency
           </h1>
-          <p className="text-primary-foreground/90 text-sm md:text-base max-w-lg drop-shadow">
-            Discover handpicked books with exclusive community discounts
+          <p className="text-primary-foreground/80 text-lg max-w-xl mx-auto">
+            Your trusted source for Journals, Professional Books, Bare Acts, and Academic Books
           </p>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-8">
+      {/* Search & Filter */}
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search by title or author..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={e => setSearch(e.target.value)}
               className="pl-9"
             />
           </div>
-          <div className="flex items-center gap-2 sm:w-52">
+          <div className="flex items-center gap-2">
             <SlidersHorizontal className="w-4 h-4 text-muted-foreground shrink-0" />
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-52">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map(cat => (
-                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                {CATEGORIES.map(cat => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -77,38 +95,39 @@ export default function CatalogPage() {
 
         {/* Results count */}
         {!isLoading && (
-          <p className="text-sm text-muted-foreground mb-6">
-            {filtered.length} {filtered.length === 1 ? 'book' : 'books'} found
-            {search && ` for "${search}"`}
-            {category !== 'all' && ` in ${category}`}
+          <p className="text-sm text-muted-foreground mt-3">
+            {filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''} found
           </p>
         )}
+      </div>
 
-        {/* Grid */}
+      {/* Book Grid */}
+      <div className="max-w-5xl mx-auto px-4 pb-12">
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="space-y-2">
                 <Skeleton className="aspect-[3/4] rounded-lg" />
                 <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-4 w-1/2" />
               </div>
             ))}
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <BookOpen className="w-16 h-16 text-muted-foreground/40 mb-4" />
-            <h3 className="font-serif text-xl font-semibold mb-2">No books found</h3>
-            <p className="text-muted-foreground text-sm max-w-sm">
-              {books.length === 0
-                ? 'The catalog is empty. Check back soon for new arrivals!'
-                : 'Try adjusting your search or filter to find what you\'re looking for.'}
+        ) : filteredBooks.length === 0 ? (
+          <div className="text-center py-16">
+            <BookOpen className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+            <h3 className="font-serif text-xl font-semibold text-foreground mb-2">
+              No books found
+            </h3>
+            <p className="text-muted-foreground">
+              {search || selectedCategory !== 'all'
+                ? 'Try adjusting your search or filter.'
+                : 'No books have been added yet.'}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filtered.map(book => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {filteredBooks.map(book => (
               <BookCard key={book.id} book={book} />
             ))}
           </div>

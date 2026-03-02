@@ -12,30 +12,54 @@ import type { Principal } from '@icp-sdk/core/principal';
 
 export interface Book {
   'id' : number,
-  'finalPrice' : bigint,
   'coverImageUrl' : string,
   'title' : string,
-  'originalPrice' : bigint,
+  'yearPublished' : bigint,
+  'publisher' : string,
   'description' : string,
   'discountPercent' : bigint,
   'author' : string,
-  'category' : string,
+  'originalPriceINR' : bigint,
+  'numPages' : bigint,
+  'finalPriceINR' : bigint,
+  'category' : BookCategory,
   'stockAvailable' : bigint,
 }
+export type BookCategory = { 'Journals' : null } |
+  { 'BareActs' : null } |
+  { 'AcademicBooks' : null } |
+  { 'ProfessionalBooks' : null };
 export interface BookOrder {
-  'status' : string,
+  'status' : OrderStatus,
   'createdAt' : Time,
+  'deliveryInfo' : DeliveryInfo,
+  'statusHistory' : Array<StatusChangeEntry>,
   'orderId' : number,
   'buyerContact' : string,
-  'totalAmount' : bigint,
+  'totalAmountINR' : bigint,
   'buyerPrincipal' : Principal,
   'items' : Array<OrderItem>,
   'buyerName' : string,
 }
+export interface DeliveryInfo {
+  'email' : string,
+  'companyName' : string,
+  'contactNumber' : string,
+  'comments' : [] | [string],
+  'companyAddress' : string,
+}
 export interface OrderItem {
+  'priceAtPurchaseINR' : bigint,
   'bookId' : number,
   'quantity' : bigint,
-  'priceAtPurchase' : bigint,
+}
+export type OrderStatus = { 'pending' : null } |
+  { 'success' : null } |
+  { 'inProgress' : null };
+export interface StatusChangeEntry {
+  'changedBy' : Principal,
+  'timestamp' : Time,
+  'newStatus' : OrderStatus,
 }
 export type Time = bigint;
 export interface UserProfile { 'contact' : string, 'name' : string }
@@ -45,7 +69,19 @@ export type UserRole = { 'admin' : null } |
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addBook' : ActorMethod<
-    [string, string, string, string, string, bigint, bigint, bigint],
+    [
+      string,
+      string,
+      string,
+      bigint,
+      bigint,
+      string,
+      string,
+      BookCategory,
+      bigint,
+      bigint,
+      bigint,
+    ],
     undefined
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
@@ -54,17 +90,22 @@ export interface _SERVICE {
   'getAllOrders' : ActorMethod<[], Array<BookOrder>>,
   'getBook' : ActorMethod<[number], Book>,
   'getBookStock' : ActorMethod<[number], bigint>,
+  'getBooksByCategory' : ActorMethod<[BookCategory], Array<Book>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getOrder' : ActorMethod<[number], BookOrder>,
+  'getOrderStatusHistory' : ActorMethod<[number], Array<StatusChangeEntry>>,
   'getOrdersByBuyer' : ActorMethod<[], Array<BookOrder>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'placeOrder' : ActorMethod<[string, string, Array<OrderItem>], undefined>,
+  'placeOrder' : ActorMethod<
+    [string, string, DeliveryInfo, Array<OrderItem>],
+    undefined
+  >,
   'restockBook' : ActorMethod<[number, bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateBook' : ActorMethod<[Book], undefined>,
-  'updateOrderStatus' : ActorMethod<[number, string], undefined>,
+  'updateOrderStatus' : ActorMethod<[number, OrderStatus], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

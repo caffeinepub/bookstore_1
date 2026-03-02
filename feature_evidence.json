@@ -2,11 +2,29 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-frontend-admin-check-flow-so-that-after-a-user-logs-in-with-internet-identity-the-app-immediately-reflects-their-admin-status-without-requiring-a-manual-page-refresh",
-      "featureTitle": "Update the frontend admin check flow so that after a user logs in with Internet Identity, the app immediately reflects their admin status without requiring a manual page refresh.",
+      "featureId": "feature-replace-the-internet-identity-authentication-requirement-on-the-admin-panel-admin-route-with-a-simple-hardcoded-password-based-access-control-when-a-user-navigates-to-admin-display-a-password-prompt-screen-if-the-correct-hardcoded-password-is-entered-grant-access-to-the-admin-panel-if-the-password-is-incorrect-show-an-error-and-keep-the-user-on-the-prompt-screen-store-the-admin-session-state-in-react-component-state-or-sessionstorage-so-the-user-is-not-re-prompted-on-page-navigation-within-the-same-session",
+      "featureTitle": "Replace the Internet Identity authentication requirement on the Admin Panel (/admin route) with a simple hardcoded password-based access control. When a user navigates to /admin, display a password prompt screen. If the correct hardcoded password is entered, grant access to the admin panel. If the password is incorrect, show an error and keep the user on the prompt screen. Store the admin session state in React component state or sessionStorage so the user is not re-prompted on page navigation within the same session.",
       "files": [
-        "frontend/src/components/layout/Header.tsx",
-        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/components/auth/PasswordPromptScreen.tsx",
+        "frontend/src/pages/AdminPanelPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-remove-the-admin-role-check-based-on-internet-identity-principal-from-the-adminpanelpage-the-access-control-logic-should-rely-solely-on-the-hardcoded-password-session-the-accessdeniedscreen-component-may-still-be-used-if-the-password-has-not-been-entered-but-it-should-not-reference-internet-identity-login",
+      "featureTitle": "Remove the admin role check based on Internet Identity principal from the AdminPanelPage. The access control logic should rely solely on the hardcoded password session. The AccessDeniedScreen component may still be used if the password has not been entered, but it should not reference Internet Identity login.",
+      "files": [
         "frontend/src/pages/AdminPanelPage.tsx"
       ],
       "components": [

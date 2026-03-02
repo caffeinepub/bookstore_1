@@ -1,17 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Bookstore app called 'Gopal Book Agency' with Internet Identity authentication. Admin access is being updated so the logged-in user's Internet Identity principal automatically has admin privileges.",
+  "summary": "Project with an admin panel. Replacing Internet Identity authentication on the admin panel with a simple hardcoded password/role-based access control. The rest of the app remains unchanged.",
   "architectural_notes": [
-    "Authentication uses Internet Identity (passkeys/biometrics) instead of username/password",
-    "Admin privileges are tied to Internet Identity principal IDs in the backend"
+    "Admin panel (/admin) uses hardcoded password/role-based access control instead of Internet Identity authentication"
   ],
   "known_issues": [],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-frontend-admin-check-flow-so-that-after-a-user-logs-in-with-internet-identity-the-app-immediately-reflects-their-admin-status-without-requiring-a-manual-page-refresh",
-      "title": "Update the frontend admin check flow so that after a user logs in with Internet Identity, the app immediately reflects their admin status without requiring a manual page refresh.",
+      "id": "feature-replace-the-internet-identity-authentication-requirement-on-the-admin-panel-admin-route-with-a-simple-hardcoded-password-based-access-control-when-a-user-navigates-to-admin-display-a-password-prompt-screen-if-the-correct-hardcoded-password-is-entered-grant-access-to-the-admin-panel-if-the-password-is-incorrect-show-an-error-and-keep-the-user-on-the-prompt-screen-store-the-admin-session-state-in-react-component-state-or-sessionstorage-so-the-user-is-not-re-prompted-on-page-navigation-within-the-same-session",
+      "title": "Replace the Internet Identity authentication requirement on the Admin Panel (/admin route) with a simple hardcoded password-based access control. When a user navigates to /admin, display a password prompt screen. If the correct hardcoded password is entered, grant access to the admin panel. If the password is incorrect, show an error and keep the user on the prompt screen. Store the admin session state in React component state or sessionStorage so the user is not re-prompted on page navigation within the same session.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-admin-role-check-based-on-internet-identity-principal-from-the-adminpanelpage-the-access-control-logic-should-rely-solely-on-the-hardcoded-password-session-the-accessdeniedscreen-component-may-still-be-used-if-the-password-has-not-been-entered-but-it-should-not-reference-internet-identity-login",
+      "title": "Remove the admin role check based on Internet Identity principal from the AdminPanelPage. The access control logic should rely solely on the hardcoded password session. The AccessDeniedScreen component may still be used if the password has not been entered, but it should not reference Internet Identity login.",
       "reqIds": [
         "REQ-2"
       ],
@@ -21,16 +28,8 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Automatically grant admin access to the logged-in Internet Identity principal",
+      "summary": "Replace Internet Identity auth on admin panel with hardcoded password or admin role access control",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Update the backend so that the first Internet Identity principal to log in is automatically set as the admin, or if an admin is already set, provide a way to bootstrap admin access by setting the deployer's principal as the admin on canister initialization.",
-      "reqIds": [
-        "REQ-1"
-      ],
       "status": "pending"
     }
   ],

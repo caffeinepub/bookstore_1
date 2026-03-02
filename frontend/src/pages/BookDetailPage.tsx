@@ -1,183 +1,222 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, ShoppingCart, Tag, BookOpen, Package, CheckCircle } from 'lucide-react';
+import { useGetBook } from '../hooks/useQueries';
+import { BookCategory } from '../backend';
+import { useCart } from '../context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useGetBook } from '../hooks/useQueries';
-import { useCart } from '../context/CartContext';
+import { ShoppingCart, ArrowLeft, BookOpen, Minus, Plus, Tag, Building2, Calendar, FileText, User } from 'lucide-react';
 
-function formatPrice(price: bigint): string {
-  return `$${(Number(price) / 100).toFixed(2)}`;
-}
+const categoryLabels: Record<string, string> = {
+  [BookCategory.Journals]: 'Journals',
+  [BookCategory.ProfessionalBooks]: 'Professional Books',
+  [BookCategory.BareActs]: 'Bare Acts',
+  [BookCategory.AcademicBooks]: 'Academic Books',
+};
 
 export default function BookDetailPage() {
-  const { id } = useParams({ from: '/layout/book/$id' });
+  const { bookId } = useParams({ from: '/layout/book/$bookId' });
   const navigate = useNavigate();
-  const bookId = parseInt(id, 10);
-  const { data: book, isLoading, isError } = useGetBook(bookId);
-  const { addToCart, items } = useCart();
-  const [added, setAdded] = useState(false);
+  const { data: book, isLoading, error } = useGetBook(Number(bookId));
+  const { addItem } = useCart();
+  const [quantity, setQuantity] = useState(1);
 
-  const cartItem = items.find(i => i.book.id === bookId);
-  const hasDiscount = book && book.discountPercent > 0n;
-  const discountAmount = book ? book.originalPrice - book.finalPrice : 0n;
-
-  const handleAddToCart = () => {
-    if (!book) return;
-    addToCart(book);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
-  };
+  const formatINR = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Skeleton className="h-8 w-32 mb-8" />
-        <div className="grid md:grid-cols-2 gap-10">
-          <Skeleton className="aspect-[3/4] rounded-xl max-w-sm" />
+      <div className="max-w-5xl mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <Skeleton className="aspect-[3/4] rounded-lg" />
           <div className="space-y-4">
-            <Skeleton className="h-10 w-3/4" />
-            <Skeleton className="h-5 w-1/2" />
-            <Skeleton className="h-4 w-1/3" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-24 w-full" />
           </div>
         </div>
       </div>
     );
   }
 
-  if (isError || !book) {
+  if (error || !book) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <BookOpen className="w-16 h-16 text-muted-foreground/40 mx-auto mb-4" />
-        <h2 className="font-serif text-2xl font-semibold mb-2">Book Not Found</h2>
-        <p className="text-muted-foreground mb-6">This book doesn't exist or has been removed.</p>
-        <Button onClick={() => navigate({ to: '/' })}>Back to Catalog</Button>
+      <div className="max-w-5xl mx-auto px-4 py-10 text-center">
+        <p className="text-destructive text-lg">Book not found.</p>
+        <Button variant="outline" className="mt-4" onClick={() => navigate({ to: '/' })}>
+          Back to Catalog
+        </Button>
       </div>
     );
   }
 
+  const originalPrice = Number(book.originalPriceINR);
+  const finalPrice = Number(book.finalPriceINR);
+  const discount = Number(book.discountPercent);
+  const stock = Number(book.stockAvailable);
+  const categoryLabel = categoryLabels[book.category as string] ?? String(book.category);
+
+  const handleAddToCart = () => {
+    if (stock > 0) {
+      addItem({
+        bookId: book.id,
+        title: book.title,
+        finalPriceINR: finalPrice,
+        quantity,
+        coverImageUrl: book.coverImageUrl,
+        maxStock: stock,
+      });
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 py-8">
       <Button
         variant="ghost"
-        size="sm"
+        className="mb-6 text-muted-foreground hover:text-foreground"
         onClick={() => navigate({ to: '/' })}
-        className="mb-6 gap-2 text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Catalog
       </Button>
 
-      <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
-        {/* Cover */}
-        <div className="flex justify-center md:justify-start">
-          <div className="relative max-w-xs w-full">
-            <img
-              src={book.coverImageUrl || '/assets/generated/book-placeholder.dim_300x420.png'}
-              alt={book.title}
-              className="w-full rounded-xl shadow-book object-cover aspect-[3/4]"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = '/assets/generated/book-placeholder.dim_300x420.png';
-              }}
-            />
-            {hasDiscount && (
-              <div className="absolute top-3 right-3">
-                <Badge className="bg-accent text-accent-foreground font-bold text-sm px-3 py-1">
-                  -{Number(book.discountPercent)}% OFF
-                </Badge>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        {/* Cover Image */}
+        <div className="relative">
+          <div className="aspect-[3/4] rounded-lg overflow-hidden bg-muted shadow-book">
+            {book.coverImageUrl ? (
+              <img
+                src={book.coverImageUrl}
+                alt={book.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <BookOpen className="w-24 h-24 text-muted-foreground/30" />
               </div>
             )}
           </div>
+          {discount > 0 && (
+            <div className="absolute top-3 right-3">
+              <Badge className="bg-accent text-accent-foreground font-bold text-sm px-3 py-1">
+                {discount}% OFF
+              </Badge>
+            </div>
+          )}
         </div>
 
         {/* Details */}
-        <div className="space-y-5">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Tag className="w-4 h-4 text-accent" />
-              <span className="text-sm font-medium text-accent uppercase tracking-wide">
-                {book.category}
-              </span>
-            </div>
-            <h1 className="font-serif text-3xl md:text-4xl font-bold leading-tight mb-2">
-              {book.title}
-            </h1>
-            <p className="text-lg text-muted-foreground">by {book.author}</p>
+        <div className="flex flex-col">
+          <Badge variant="outline" className="w-fit mb-3 text-muted-foreground">
+            {categoryLabel}
+          </Badge>
+
+          <h1 className="font-serif text-3xl font-bold text-foreground mb-2 leading-tight">
+            {book.title}
+          </h1>
+
+          {/* Metadata Grid */}
+          <div className="grid grid-cols-2 gap-3 mb-4 p-4 bg-secondary/20 rounded-lg border border-border">
+            {book.author && (
+              <div className="flex items-start gap-2">
+                <User className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Author</p>
+                  <p className="text-sm font-medium text-foreground">{book.author}</p>
+                </div>
+              </div>
+            )}
+            {book.publisher && (
+              <div className="flex items-start gap-2">
+                <Building2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Publisher</p>
+                  <p className="text-sm font-medium text-foreground">{book.publisher}</p>
+                </div>
+              </div>
+            )}
+            {book.yearPublished && Number(book.yearPublished) > 0 && (
+              <div className="flex items-start gap-2">
+                <Calendar className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Year Published</p>
+                  <p className="text-sm font-medium text-foreground">{Number(book.yearPublished)}</p>
+                </div>
+              </div>
+            )}
+            {book.numPages && Number(book.numPages) > 0 && (
+              <div className="flex items-start gap-2">
+                <FileText className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Pages</p>
+                  <p className="text-sm font-medium text-foreground">{Number(book.numPages)}</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Price breakdown */}
-          <div className="bg-secondary rounded-xl p-5 space-y-2">
-            <h3 className="font-serif text-base font-semibold mb-3">Price Details</h3>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Original Price</span>
-              <span className={hasDiscount ? 'line-through text-muted-foreground' : 'font-medium'}>
-                {formatPrice(book.originalPrice)}
-              </span>
-            </div>
-            {hasDiscount && (
+          {/* Price */}
+          <div className="flex items-baseline gap-3 mb-4">
+            <span className="text-3xl font-bold text-primary">
+              {formatINR(finalPrice)}
+            </span>
+            {discount > 0 && (
               <>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Discount ({Number(book.discountPercent)}%)</span>
-                  <span className="text-accent font-medium">-{formatPrice(discountAmount)}</span>
-                </div>
-                <div className="border-t border-border pt-2 flex justify-between">
-                  <span className="font-semibold">Final Price</span>
-                  <span className="font-bold text-xl text-foreground">{formatPrice(book.finalPrice)}</span>
-                </div>
+                <span className="text-lg text-muted-foreground line-through">
+                  {formatINR(originalPrice)}
+                </span>
+                <span className="text-sm text-accent font-semibold flex items-center gap-1">
+                  <Tag className="w-3.5 h-3.5" />
+                  Save {formatINR(originalPrice - finalPrice)}
+                </span>
               </>
-            )}
-            {!hasDiscount && (
-              <div className="border-t border-border pt-2 flex justify-between">
-                <span className="font-semibold">Price</span>
-                <span className="font-bold text-xl">{formatPrice(book.finalPrice)}</span>
-              </div>
             )}
           </div>
 
           {/* Stock */}
-          <div className="flex items-center gap-2 text-sm">
-            <Package className="w-4 h-4 text-muted-foreground" />
-            {book.stockAvailable > 0n ? (
-              <span className="text-muted-foreground">
-                <span className="text-foreground font-medium">{Number(book.stockAvailable)}</span> copies available
+          <div className="mb-4">
+            {stock > 0 ? (
+              <span className="text-sm text-green-600 font-medium">
+                ✓ In Stock ({stock} available)
               </span>
             ) : (
-              <span className="text-destructive font-medium">Out of stock</span>
+              <span className="text-sm text-destructive font-medium">✗ Out of Stock</span>
             )}
           </div>
 
           {/* Description */}
-          <div>
-            <h3 className="font-serif text-lg font-semibold mb-2">About this Book</h3>
-            <p className="text-muted-foreground leading-relaxed text-sm md:text-base">
-              {book.description || 'No description available.'}
-            </p>
-          </div>
-
-          {/* Cart info */}
-          {cartItem && (
-            <div className="flex items-center gap-2 text-sm text-accent bg-accent/10 rounded-lg px-3 py-2">
-              <CheckCircle className="w-4 h-4" />
-              <span>{cartItem.quantity} copy in your cart</span>
+          {book.description && (
+            <div className="mb-6">
+              <h3 className="font-semibold text-foreground mb-2">Description</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{book.description}</p>
             </div>
           )}
 
-          {/* Add to Cart */}
-          <Button
-            size="lg"
-            className="w-full gap-2"
-            onClick={handleAddToCart}
-            disabled={book.stockAvailable === 0n}
-          >
-            {added ? (
-              <><CheckCircle className="w-5 h-5" /> Added to Cart!</>
-            ) : (
-              <><ShoppingCart className="w-5 h-5" /> Add to Cart</>
-            )}
-          </Button>
+          {/* Quantity + Add to Cart */}
+          {stock > 0 && (
+            <div className="flex items-center gap-4 mt-auto">
+              <div className="flex items-center border border-border rounded-lg overflow-hidden">
+                <button
+                  className="px-3 py-2 hover:bg-secondary transition-colors"
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="px-4 py-2 font-medium min-w-[3rem] text-center">{quantity}</span>
+                <button
+                  className="px-3 py-2 hover:bg-secondary transition-colors"
+                  onClick={() => setQuantity(q => Math.min(stock, q + 1))}
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              <Button className="flex-1" size="lg" onClick={handleAddToCart}>
+                <ShoppingCart className="w-5 h-5 mr-2" />
+                Add to Cart
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

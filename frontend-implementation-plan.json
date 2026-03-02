@@ -1,36 +1,50 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Auto-grant admin access to logged-in Internet Identity principal",
+  "title": "Replace Internet Identity admin auth with hardcoded password access control",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Update the frontend admin check flow so that after a user logs in with Internet Identity, the app immediately reflects their admin status without requiring a manual page refresh.",
+      "id": "REQ-1",
+      "summary": "Replace Internet Identity authentication on /admin with hardcoded password prompt and session-based access control",
       "acceptanceCriteria": [
-        "After Internet Identity login completes, the admin status query is re-fetched automatically",
-        "Admin navigation links and the admin panel become accessible without requiring a page reload",
-        "Non-admin users still see the AccessDeniedScreen when navigating to the admin panel"
+        "Navigating to /admin no longer triggers Internet Identity login",
+        "A password prompt UI is shown when accessing /admin without an active admin session",
+        "Entering the correct hardcoded password grants access to the admin panel tabs (Books and Orders)",
+        "Entering an incorrect password shows a visible error message and does not grant access",
+        "Admin session persists for the duration of the browser session (sessionStorage or React state) so the user is not re-prompted unnecessarily",
+        "The rest of the application (catalog, checkout, order history, cart) is unaffected"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useInternetIdentity.ts",
-          "operation": "modify",
-          "description": "After successful login completes, trigger query invalidation for admin status and user role queries to ensure the UI immediately reflects the current user's permissions. Use the authorization component's admin check capabilities to verify access. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Ensure the useIsCallerAdmin and useGetCallerUserRole hooks are configured to automatically refetch when the actor changes. Add queryClient.invalidateQueries calls for admin-related query keys when authentication state changes. Use the authorization component to support role-based access checks. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/layout/Header.tsx",
-          "operation": "modify",
-          "description": "Update the navigation links to reactively show or hide admin panel links based on the real-time admin status from useIsCallerAdmin hook. Ensure the UI updates immediately after login without requiring a page refresh. Use the authorization component's role checks to conditionally render admin navigation. Verify the component's usage instructions before implementing."
+          "path": "frontend/src/components/auth/PasswordPromptScreen.tsx",
+          "operation": "create",
+          "description": "Create a new password prompt component that displays a centered form with a password input field, submit button, and error message display. On submission, compare the entered password against a hardcoded value (e.g., 'admin123'). If correct, call a callback prop to grant access; if incorrect, show an error message below the input field."
         },
         {
           "path": "frontend/src/pages/AdminPanelPage.tsx",
           "operation": "modify",
-          "description": "Ensure the admin check using useIsCallerAdmin is properly connected to the authentication flow and that the AccessDeniedScreen is shown for non-admin users. Verify that the page correctly handles the transition from unauthenticated to authenticated admin state without requiring a manual refresh. Use the authorization component's admin permission checks. Verify the component's usage instructions before implementing."
+          "description": "Remove the Internet Identity-based admin role check and isCallerAdmin backend call. Replace the authentication logic with a password-based session check using sessionStorage (key: 'adminAuthenticated'). When the component mounts, check if sessionStorage has 'adminAuthenticated' set to 'true'. If not, render the PasswordPromptScreen component instead of the admin tabs. When the password prompt succeeds, set sessionStorage 'adminAuthenticated' to 'true' and update local state to show the admin panel. If the user is not password-authenticated, do not render BooksManagementTab or OrdersManagementTab. Keep the Tabs UI structure intact for authenticated sessions."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Remove Internet Identity principal-based admin role check from AdminPanelPage",
+      "acceptanceCriteria": [
+        "AdminPanelPage no longer calls any Internet Identity or principal-based admin role check",
+        "The admin panel is accessible purely by entering the correct hardcoded password",
+        "No Internet Identity login prompt appears when accessing /admin"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminPanelPage.tsx",
+          "operation": "modify",
+          "description": "Remove all imports and usages of useIsCallerAdmin hook and the isCallerAdmin query. Remove any logic that checks identity or principal to determine admin access. Ensure AccessDeniedScreen is no longer rendered based on Internet Identity checks; instead, only render PasswordPromptScreen when the password session is not active. Do not reference Internet Identity login in any error messages or UI text."
+        },
+        {
+          "path": "frontend/src/components/auth/AccessDeniedScreen.tsx",
+          "operation": "modify",
+          "description": "Update the AccessDeniedScreen component text and UI to reflect that it is now only used for cases where the password has not been entered (if still used), rather than for Internet Identity-based authorization failures. If this component is no longer referenced after REQ-1 and REQ-2 changes, this operation ensures it does not mention Internet Identity login in its messaging."
         }
       ]
     }

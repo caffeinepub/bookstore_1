@@ -1,54 +1,42 @@
-import React from 'react';
-import { Shield, Loader2 } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useIsCallerAdmin } from '../hooks/useQueries';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useActor } from '../hooks/useActor';
-import AccessDeniedScreen from '../components/auth/AccessDeniedScreen';
+import React, { useState } from 'react';
+import PasswordPromptScreen from '../components/auth/PasswordPromptScreen';
 import BooksManagementTab from '../components/admin/BooksManagementTab';
 import OrdersManagementTab from '../components/admin/OrdersManagementTab';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BookOpen, ShoppingBag } from 'lucide-react';
+
+function isAdminAuthenticated(): boolean {
+  return sessionStorage.getItem('adminAuthenticated') === 'true';
+}
 
 export default function AdminPanelPage() {
-  const { identity, isInitializing, isLoggingIn } = useInternetIdentity();
-  const { isFetching: actorFetching } = useActor();
-  const { data: isAdmin, isLoading: adminLoading } = useIsCallerAdmin();
+  const [authenticated, setAuthenticated] = useState<boolean>(isAdminAuthenticated());
 
-  const isAuthenticated = !!identity;
-
-  // Show loading while auth is initializing, actor is being set up, or admin check is in progress
-  const isCheckingAccess = isInitializing || isLoggingIn || actorFetching || adminLoading;
-
-  if (isCheckingAccess) {
+  if (!authenticated) {
     return (
-      <div className="container mx-auto px-4 py-16 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">Checking permissions...</p>
-        </div>
-      </div>
+      <PasswordPromptScreen
+        onSuccess={() => setAuthenticated(true)}
+      />
     );
   }
 
-  if (!isAuthenticated || !isAdmin) {
-    return <AccessDeniedScreen />;
-  }
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Shield className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <h1 className="font-serif text-3xl font-bold">Admin Panel</h1>
-          <p className="text-sm text-muted-foreground">Manage books and orders</p>
-        </div>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="font-serif text-3xl font-bold text-foreground">Admin Panel</h1>
+        <p className="text-muted-foreground mt-1">Manage books and orders for Gopal Book Agency</p>
       </div>
 
       <Tabs defaultValue="books">
         <TabsList className="mb-6">
-          <TabsTrigger value="books">Books Management</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="books" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            Books Management
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="flex items-center gap-2">
+            <ShoppingBag className="w-4 h-4" />
+            Orders Management
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="books">
           <BooksManagementTab />

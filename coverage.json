@@ -1,49 +1,49 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T11:00:35.779Z",
+  "generatedAt": "2026-03-02T17:10:14.578Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 2,
-    "implemented": 1,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the backend so that the first Internet Identity principal to log in is automatically set as the admin, or if an admin is already set, provide a way to bootstrap admin access by setting the deployer's principal as the admin on canister initialization.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Update the frontend admin check flow so that after a user logs in with Internet Identity, the app immediately reflects their admin status without requiring a manual page refresh.",
+        "summary": "Replace the Internet Identity authentication requirement on the Admin Panel (/admin route) with a simple hardcoded password-based access control. When a user navigates to /admin, display a password prompt screen. If the correct hardcoded password is entered, grant access to the admin panel. If the password is incorrect, show an error and keep the user on the prompt screen. Store the admin session state in React component state or sessionStorage so the user is not re-prompted on page navigation within the same session.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useInternetIdentity.ts",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/layout/Header.tsx",
+          "frontend/src/components/auth/PasswordPromptScreen.tsx",
           "frontend/src/pages/AdminPanelPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/layout/Header.tsx",
+          "frontend/src/components/auth/PasswordPromptScreen.tsx",
+          "frontend/src/pages/AdminPanelPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Remove the admin role check based on Internet Identity principal from the AdminPanelPage. The access control logic should rely solely on the hardcoded password session. The AccessDeniedScreen component may still be used if the password has not been entered, but it should not reference Internet Identity login.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminPanelPage.tsx",
+          "frontend/src/components/auth/AccessDeniedScreen.tsx"
+        ],
+        "matchedFiles": [
           "frontend/src/pages/AdminPanelPage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/auth/PasswordPromptScreen.tsx",
     "frontend/src/components/layout/Header.tsx",
-    "frontend/src/hooks/useQueries.ts",
     "frontend/src/pages/AdminPanelPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",

@@ -1,12 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
+import { Book, BookCategory } from '../../backend';
 import { useAddBook, useUpdateBook } from '../../hooks/useQueries';
-import type { Book } from '../../backend';
 
 interface BookFormModalProps {
   open: boolean;
@@ -14,64 +27,68 @@ interface BookFormModalProps {
   editBook?: Book | null;
 }
 
-interface FormData {
-  title: string;
-  author: string;
-  description: string;
-  coverImageUrl: string;
-  category: string;
-  originalPrice: string;
-  discountPercent: string;
-  stockAvailable: string;
-}
+const CATEGORIES = [
+  { value: BookCategory.Journals, label: 'Journals' },
+  { value: BookCategory.ProfessionalBooks, label: 'Professional Books' },
+  { value: BookCategory.BareActs, label: 'Bare Acts' },
+  { value: BookCategory.AcademicBooks, label: 'Academic Books' },
+];
 
-const emptyForm: FormData = {
+const defaultForm = {
   title: '',
   author: '',
+  publisher: '',
+  yearPublished: '',
+  numPages: '',
   description: '',
   coverImageUrl: '',
-  category: '',
-  originalPrice: '',
+  category: BookCategory.Journals as BookCategory,
+  originalPriceINR: '',
   discountPercent: '0',
   stockAvailable: '',
 };
 
 export default function BookFormModal({ open, onClose, editBook }: BookFormModalProps) {
-  const [form, setForm] = useState<FormData>(emptyForm);
-  const [errors, setErrors] = useState<Partial<FormData>>({});
-
-  const addBook = useAddBook();
-  const updateBook = useUpdateBook();
+  const addBookMutation = useAddBook();
+  const updateBookMutation = useUpdateBook();
+  const [form, setForm] = useState(defaultForm);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (editBook) {
       setForm({
         title: editBook.title,
-        author: editBook.author,
+        author: editBook.author ?? '',
+        publisher: editBook.publisher ?? '',
+        yearPublished: editBook.yearPublished ? String(Number(editBook.yearPublished)) : '',
+        numPages: editBook.numPages ? String(Number(editBook.numPages)) : '',
         description: editBook.description,
         coverImageUrl: editBook.coverImageUrl,
         category: editBook.category,
-        originalPrice: String(Number(editBook.originalPrice)),
+        originalPriceINR: String(Number(editBook.originalPriceINR)),
         discountPercent: String(Number(editBook.discountPercent)),
         stockAvailable: String(Number(editBook.stockAvailable)),
       });
     } else {
-      setForm(emptyForm);
+      setForm(defaultForm);
     }
     setErrors({});
   }, [editBook, open]);
 
-  const validate = (): boolean => {
-    const newErrors: Partial<FormData> = {};
-    if (!form.title.trim()) newErrors.title = 'Required';
-    if (!form.author.trim()) newErrors.author = 'Required';
-    if (!form.category.trim()) newErrors.category = 'Required';
-    if (!form.originalPrice || isNaN(Number(form.originalPrice)) || Number(form.originalPrice) < 0)
-      newErrors.originalPrice = 'Valid price required';
-    if (isNaN(Number(form.discountPercent)) || Number(form.discountPercent) < 0 || Number(form.discountPercent) > 100)
-      newErrors.discountPercent = '0–100';
-    if (!form.stockAvailable || isNaN(Number(form.stockAvailable)) || Number(form.stockAvailable) < 0)
-      newErrors.stockAvailable = 'Valid stock required';
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!form.title.trim()) newErrors.title = 'Title is required';
+    if (!form.author.trim()) newErrors.author = 'Author is required';
+    if (!form.publisher.trim()) newErrors.publisher = 'Publisher is required';
+    if (!form.originalPriceINR || isNaN(Number(form.originalPriceINR)) || Number(form.originalPriceINR) < 0) {
+      newErrors.originalPriceINR = 'Valid price is required';
+    }
+    if (isNaN(Number(form.discountPercent)) || Number(form.discountPercent) < 0 || Number(form.discountPercent) > 100) {
+      newErrors.discountPercent = 'Discount must be 0–100';
+    }
+    if (!form.stockAvailable || isNaN(Number(form.stockAvailable)) || Number(form.stockAvailable) < 0) {
+      newErrors.stockAvailable = 'Valid stock quantity is required';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -82,140 +99,253 @@ export default function BookFormModal({ open, onClose, editBook }: BookFormModal
 
     try {
       if (editBook) {
-        const finalPrice = BigInt(Math.round(Number(form.originalPrice))) -
-          (BigInt(Math.round(Number(form.originalPrice))) * BigInt(Math.round(Number(form.discountPercent))) / 100n);
-        await updateBook.mutateAsync({
-          id: editBook.id,
+        await updateBookMutation.mutateAsync({
+          ...editBook,
           title: form.title.trim(),
           author: form.author.trim(),
+          publisher: form.publisher.trim(),
+          yearPublished: BigInt(form.yearPublished || '0'),
+          numPages: BigInt(form.numPages || '0'),
           description: form.description.trim(),
           coverImageUrl: form.coverImageUrl.trim(),
-          category: form.category.trim(),
-          originalPrice: BigInt(Math.round(Number(form.originalPrice))),
+          category: form.category,
+          originalPriceINR: BigInt(Math.round(Number(form.originalPriceINR))),
           discountPercent: BigInt(Math.round(Number(form.discountPercent))),
-          finalPrice,
+          finalPriceINR: BigInt(0), // recalculated by backend
           stockAvailable: BigInt(Math.round(Number(form.stockAvailable))),
         });
       } else {
-        await addBook.mutateAsync({
+        await addBookMutation.mutateAsync({
           title: form.title.trim(),
           author: form.author.trim(),
+          publisher: form.publisher.trim(),
+          yearPublished: BigInt(form.yearPublished || '0'),
+          numPages: BigInt(form.numPages || '0'),
           description: form.description.trim(),
           coverImageUrl: form.coverImageUrl.trim(),
-          category: form.category.trim(),
-          originalPrice: BigInt(Math.round(Number(form.originalPrice))),
+          category: form.category,
+          originalPriceINR: BigInt(Math.round(Number(form.originalPriceINR))),
           discountPercent: BigInt(Math.round(Number(form.discountPercent))),
           stockAvailable: BigInt(Math.round(Number(form.stockAvailable))),
         });
       }
       onClose();
-    } catch {
-      // error shown via mutation state
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to save book';
+      setErrors({ general: message });
     }
   };
 
-  const isPending = addBook.isPending || updateBook.isPending;
-  const isError = addBook.isError || updateBook.isError;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+  };
 
-  const field = (id: keyof FormData, label: string, placeholder: string, type = 'text') => (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        type={type}
-        placeholder={placeholder}
-        value={form[id]}
-        onChange={(e) => setForm(prev => ({ ...prev, [id]: e.target.value }))}
-        className={errors[id] ? 'border-destructive' : ''}
-      />
-      {errors[id] && <p className="text-xs text-destructive">{errors[id]}</p>}
-    </div>
-  );
+  const isPending = addBookMutation.isPending || updateBookMutation.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-serif text-xl">
             {editBook ? 'Edit Book' : 'Add New Book'}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          {field('title', 'Title *', 'Book title')}
-          {field('author', 'Author *', 'Author name')}
-          {field('category', 'Category *', 'e.g. Fiction, Science, History')}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Title */}
+          <div>
+            <Label htmlFor="title">Title *</Label>
+            <Input
+              id="title"
+              name="title"
+              value={form.title}
+              onChange={handleChange}
+              placeholder="Book title"
+              className={errors.title ? 'border-destructive' : ''}
+            />
+            {errors.title && <p className="text-destructive text-xs mt-1">{errors.title}</p>}
+          </div>
 
-          <div className="space-y-1.5">
+          {/* Author & Publisher */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="author">Author *</Label>
+              <Input
+                id="author"
+                name="author"
+                value={form.author}
+                onChange={handleChange}
+                placeholder="Author name"
+                className={errors.author ? 'border-destructive' : ''}
+              />
+              {errors.author && <p className="text-destructive text-xs mt-1">{errors.author}</p>}
+            </div>
+            <div>
+              <Label htmlFor="publisher">Publisher *</Label>
+              <Input
+                id="publisher"
+                name="publisher"
+                value={form.publisher}
+                onChange={handleChange}
+                placeholder="Publisher name"
+                className={errors.publisher ? 'border-destructive' : ''}
+              />
+              {errors.publisher && <p className="text-destructive text-xs mt-1">{errors.publisher}</p>}
+            </div>
+          </div>
+
+          {/* Year & Pages */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="yearPublished">Year of Publication</Label>
+              <Input
+                id="yearPublished"
+                name="yearPublished"
+                type="number"
+                value={form.yearPublished}
+                onChange={handleChange}
+                placeholder="e.g. 2023"
+                min="1800"
+                max="2100"
+              />
+            </div>
+            <div>
+              <Label htmlFor="numPages">Number of Pages</Label>
+              <Input
+                id="numPages"
+                name="numPages"
+                type="number"
+                value={form.numPages}
+                onChange={handleChange}
+                placeholder="e.g. 350"
+                min="1"
+              />
+            </div>
+          </div>
+
+          {/* Category */}
+          <div>
+            <Label>Category *</Label>
+            <Select
+              value={form.category}
+              onValueChange={(val) => setForm(prev => ({ ...prev, category: val as BookCategory }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map(cat => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Price & Discount */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="originalPriceINR">Price in INR (₹) *</Label>
+              <Input
+                id="originalPriceINR"
+                name="originalPriceINR"
+                type="number"
+                value={form.originalPriceINR}
+                onChange={handleChange}
+                placeholder="e.g. 599"
+                min="0"
+                className={errors.originalPriceINR ? 'border-destructive' : ''}
+              />
+              {errors.originalPriceINR && (
+                <p className="text-destructive text-xs mt-1">{errors.originalPriceINR}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="discountPercent">Discount (%)</Label>
+              <Input
+                id="discountPercent"
+                name="discountPercent"
+                type="number"
+                value={form.discountPercent}
+                onChange={handleChange}
+                placeholder="0"
+                min="0"
+                max="100"
+                className={errors.discountPercent ? 'border-destructive' : ''}
+              />
+              {errors.discountPercent && (
+                <p className="text-destructive text-xs mt-1">{errors.discountPercent}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Stock */}
+          <div>
+            <Label htmlFor="stockAvailable">Stock Available *</Label>
+            <Input
+              id="stockAvailable"
+              name="stockAvailable"
+              type="number"
+              value={form.stockAvailable}
+              onChange={handleChange}
+              placeholder="e.g. 50"
+              min="0"
+              className={errors.stockAvailable ? 'border-destructive' : ''}
+            />
+            {errors.stockAvailable && (
+              <p className="text-destructive text-xs mt-1">{errors.stockAvailable}</p>
+            )}
+          </div>
+
+          {/* Cover Image URL */}
+          <div>
+            <Label htmlFor="coverImageUrl">Cover Image URL</Label>
+            <Input
+              id="coverImageUrl"
+              name="coverImageUrl"
+              value={form.coverImageUrl}
+              onChange={handleChange}
+              placeholder="https://example.com/cover.jpg"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              placeholder="Book description..."
+              name="description"
               value={form.description}
-              onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+              onChange={handleChange}
+              placeholder="Book description..."
               rows={3}
             />
           </div>
 
-          {field('coverImageUrl', 'Cover Image URL', 'https://...')}
-
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="originalPrice">Price (cents) *</Label>
-              <Input
-                id="originalPrice"
-                type="number"
-                min="0"
-                placeholder="e.g. 1299"
-                value={form.originalPrice}
-                onChange={(e) => setForm(prev => ({ ...prev, originalPrice: e.target.value }))}
-                className={errors.originalPrice ? 'border-destructive' : ''}
-              />
-              {errors.originalPrice && <p className="text-xs text-destructive">{errors.originalPrice}</p>}
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="discountPercent">Discount %</Label>
-              <Input
-                id="discountPercent"
-                type="number"
-                min="0"
-                max="100"
-                placeholder="0"
-                value={form.discountPercent}
-                onChange={(e) => setForm(prev => ({ ...prev, discountPercent: e.target.value }))}
-                className={errors.discountPercent ? 'border-destructive' : ''}
-              />
-              {errors.discountPercent && <p className="text-xs text-destructive">{errors.discountPercent}</p>}
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="stockAvailable">Stock *</Label>
-              <Input
-                id="stockAvailable"
-                type="number"
-                min="0"
-                placeholder="e.g. 50"
-                value={form.stockAvailable}
-                onChange={(e) => setForm(prev => ({ ...prev, stockAvailable: e.target.value }))}
-                className={errors.stockAvailable ? 'border-destructive' : ''}
-              />
-              {errors.stockAvailable && <p className="text-xs text-destructive">{errors.stockAvailable}</p>}
-            </div>
-          </div>
-
-          {isError && (
-            <p className="text-sm text-destructive">
-              Failed to save book. Please try again.
+          {errors.general && (
+            <p className="text-destructive text-sm bg-destructive/10 p-3 rounded-lg">
+              {errors.general}
             </p>
           )}
 
-          <DialogFooter className="gap-2 pt-2">
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</>
-              ) : editBook ? 'Update Book' : 'Add Book'}
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : editBook ? (
+                'Update Book'
+              ) : (
+                'Add Book'
+              )}
             </Button>
           </DialogFooter>
         </form>

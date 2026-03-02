@@ -1,52 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { useInternetIdentity } from './useInternetIdentity';
-import type { Book, BookOrder, UserProfile, OrderItem } from '../backend';
-
-// ---- User Profile ----
-
-export function useGetCallerUserProfile() {
-  const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  const query = useQuery<UserProfile | null>({
-    queryKey: ['currentUserProfile', identity?.getPrincipal().toString()],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserProfile();
-    },
-    enabled: !!actor && !actorFetching && !!identity,
-    retry: false,
-    staleTime: 0,
-  });
-
-  return {
-    ...query,
-    isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
-  };
-}
-
-export function useSaveCallerUserProfile() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (profile: UserProfile) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.saveCallerUserProfile(profile);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-    },
-  });
-}
-
-// ---- Books ----
+import { Book, BookCategory, BookOrder, OrderItem, OrderStatus, UserProfile, DeliveryInfo } from '../backend';
 
 export function useGetAllBooks() {
   const { actor, isFetching } = useActor();
-
   return useQuery<Book[]>({
     queryKey: ['books'],
     queryFn: async () => {
@@ -59,65 +16,58 @@ export function useGetAllBooks() {
 
 export function useGetBook(bookId: number) {
   const { actor, isFetching } = useActor();
-
   return useQuery<Book>({
     queryKey: ['book', bookId],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.getBook(bookId);
     },
-    enabled: !!actor && !isFetching && bookId > 0,
+    enabled: !!actor && !isFetching && bookId !== undefined,
   });
 }
 
-export function useIsCallerAdmin() {
+export function useGetBooksByCategory(category: BookCategory) {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useQuery<boolean>({
-    queryKey: ['isAdmin', identity?.getPrincipal().toString() ?? 'anonymous'],
+  return useQuery<Book[]>({
+    queryKey: ['books', 'category', category],
     queryFn: async () => {
-      if (!actor) return false;
-      try {
-        return await actor.isCallerAdmin();
-      } catch {
-        return false;
-      }
+      if (!actor) return [];
+      return actor.getBooksByCategory(category);
     },
     enabled: !!actor && !isFetching,
-    staleTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
   });
 }
-
-// ---- Admin Book Mutations ----
 
 export function useAddBook() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (params: {
+    mutationFn: async (book: {
       title: string;
       author: string;
+      publisher: string;
+      yearPublished: bigint;
+      numPages: bigint;
       description: string;
       coverImageUrl: string;
-      category: string;
-      originalPrice: bigint;
+      category: BookCategory;
+      originalPriceINR: bigint;
       discountPercent: bigint;
       stockAvailable: bigint;
     }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.addBook(
-        params.title,
-        params.author,
-        params.description,
-        params.coverImageUrl,
-        params.category,
-        params.originalPrice,
-        params.discountPercent,
-        params.stockAvailable
+        book.title,
+        book.author,
+        book.publisher,
+        book.yearPublished,
+        book.numPages,
+        book.description,
+        book.coverImageUrl,
+        book.category,
+        book.originalPriceINR,
+        book.discountPercent,
+        book.stockAvailable
       );
     },
     onSuccess: () => {
@@ -129,7 +79,6 @@ export function useAddBook() {
 export function useUpdateBook() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (book: Book) => {
       if (!actor) throw new Error('Actor not available');
@@ -144,7 +93,6 @@ export function useUpdateBook() {
 export function useDeleteBook() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (bookId: number) => {
       if (!actor) throw new Error('Actor not available');
@@ -156,67 +104,146 @@ export function useDeleteBook() {
   });
 }
 
-// ---- Orders ----
-
 export function usePlaceOrder() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (params: {
       buyerName: string;
       buyerContact: string;
+      deliveryInfo: DeliveryInfo;
       items: OrderItem[];
     }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.placeOrder(params.buyerName, params.buyerContact, params.items);
+      return actor.placeOrder(
+        params.buyerName,
+        params.buyerContact,
+        params.deliveryInfo,
+        params.items
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['books'] });
     },
   });
 }
 
 export function useGetOrdersByBuyer() {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
   return useQuery<BookOrder[]>({
-    queryKey: ['orders', 'buyer', identity?.getPrincipal().toString()],
+    queryKey: ['orders', 'buyer'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getOrdersByBuyer();
     },
-    enabled: !!actor && !isFetching && !!identity,
+    enabled: !!actor && !isFetching,
   });
 }
 
 export function useGetAllOrders() {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
   return useQuery<BookOrder[]>({
     queryKey: ['orders', 'all'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllOrders();
     },
-    enabled: !!actor && !isFetching && !!identity,
+    enabled: !!actor && !isFetching,
   });
 }
 
 export function useUpdateOrderStatus() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (params: { orderId: number; newStatus: string }) => {
+    mutationFn: async (params: { orderId: number; newStatus: OrderStatus }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.updateOrderStatus(params.orderId, params.newStatus);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
+}
+
+export function useOrderStatusHistory(orderId: number) {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ['orderStatusHistory', orderId],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getOrderStatusHistory(orderId);
+    },
+    enabled: !!actor && !isFetching && orderId !== undefined,
+  });
+}
+
+export function useGetCallerUserProfile() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const query = useQuery<UserProfile | null>({
+    queryKey: ['currentUserProfile'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getCallerUserProfile();
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
+export function useSaveCallerUserProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (profile: UserProfile) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.saveCallerUserProfile(profile);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useIsAdmin() {
+  const { actor, isFetching } = useActor();
+  return useQuery<boolean>({
+    queryKey: ['isAdmin'],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.isCallerAdmin();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetCallerUserRole() {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ['callerUserRole'],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getCallerUserRole();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useRestockBook() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { bookId: number; additionalStock: bigint }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.restockBook(params.bookId, params.additionalStock);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['books'] });
     },
   });
 }

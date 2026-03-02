@@ -1,29 +1,42 @@
 import React from 'react';
-import { createRouter, createRoute, createRootRoute, RouterProvider, Outlet } from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  RouterProvider,
+  createRouter,
+  createRoute,
+  createRootRoute,
+  Outlet,
+} from '@tanstack/react-router';
 import { ThemeProvider } from 'next-themes';
-import { Toaster } from '@/components/ui/sonner';
 import { CartProvider } from './context/CartContext';
-import { useInternetIdentity } from './hooks/useInternetIdentity';
-import { useGetCallerUserProfile } from './hooks/useQueries';
-import { useActor } from './hooks/useActor';
 import Layout from './components/layout/Layout';
-import ProfileSetupModal from './components/auth/ProfileSetupModal';
 import CatalogPage from './pages/CatalogPage';
 import BookDetailPage from './pages/BookDetailPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
-import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import AdminPanelPage from './pages/AdminPanelPage';
+import ProfileSetupModal from './components/auth/ProfileSetupModal';
+import { useInternetIdentity } from './hooks/useInternetIdentity';
+import { useGetCallerUserProfile } from './hooks/useQueries';
 
-// Profile guard wrapper
-function AppWithProfileGuard() {
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+    },
+  },
+});
+
+// Root wrapper: handles profile setup modal
+function RootWrapper() {
   const { identity } = useInternetIdentity();
-  const { isFetching: actorFetching } = useActor();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
 
   const isAuthenticated = !!identity;
-  const showProfileSetup = isAuthenticated && !actorFetching && !profileLoading && isFetched && userProfile === null;
+  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
 
   return (
     <>
@@ -35,11 +48,7 @@ function AppWithProfileGuard() {
 
 // Routes
 const rootRoute = createRootRoute({
-  component: () => (
-    <CartProvider>
-      <AppWithProfileGuard />
-    </CartProvider>
-  ),
+  component: RootWrapper,
 });
 
 const layoutRoute = createRoute({
@@ -48,7 +57,7 @@ const layoutRoute = createRoute({
   component: Layout,
 });
 
-const catalogRoute = createRoute({
+const indexRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: '/',
   component: CatalogPage,
@@ -56,7 +65,7 @@ const catalogRoute = createRoute({
 
 const bookDetailRoute = createRoute({
   getParentRoute: () => layoutRoute,
-  path: '/book/$id',
+  path: '/book/$bookId',
   component: BookDetailPage,
 });
 
@@ -72,16 +81,16 @@ const checkoutRoute = createRoute({
   component: CheckoutPage,
 });
 
+const ordersRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: '/orders',
+  component: OrderHistoryPage,
+});
+
 const orderConfirmationRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: '/order-confirmation',
   component: OrderConfirmationPage,
-});
-
-const orderHistoryRoute = createRoute({
-  getParentRoute: () => layoutRoute,
-  path: '/orders',
-  component: OrderHistoryPage,
 });
 
 const adminRoute = createRoute({
@@ -92,12 +101,12 @@ const adminRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   layoutRoute.addChildren([
-    catalogRoute,
+    indexRoute,
     bookDetailRoute,
     cartRoute,
     checkoutRoute,
+    ordersRoute,
     orderConfirmationRoute,
-    orderHistoryRoute,
     adminRoute,
   ]),
 ]);
@@ -113,8 +122,11 @@ declare module '@tanstack/react-router' {
 export default function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <RouterProvider router={router} />
-      <Toaster />
+      <QueryClientProvider client={queryClient}>
+        <CartProvider>
+          <RouterProvider router={router} />
+        </CartProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

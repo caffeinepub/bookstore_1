@@ -1,18 +1,17 @@
-import Array "mo:core/Array";
+import Map "mo:core/Map";
 import Time "mo:core/Time";
 import List "mo:core/List";
-import Map "mo:core/Map";
-import Text "mo:core/Text";
-import CoreOrder "mo:core/Order";
 import Nat32 "mo:core/Nat32";
 import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
+import Text "mo:core/Text";
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
-(with migration = Migration.run)
+// Explicit migration from old to new state.
+
 actor {
   // Authorization
   let accessControlState = AccessControl.initState();
@@ -49,23 +48,53 @@ actor {
   };
 
   // Data Models
+  public type BookCategory = {
+    #Journals;
+    #ProfessionalBooks;
+    #BareActs;
+    #AcademicBooks;
+  };
+
   public type Book = {
     id : Nat32;
     title : Text;
     author : Text;
+    publisher : Text;
+    yearPublished : Nat;
+    numPages : Nat;
     description : Text;
     coverImageUrl : Text;
-    category : Text;
-    originalPrice : Nat;
+    category : BookCategory;
+    originalPriceINR : Nat;
     discountPercent : Nat;
-    finalPrice : Nat;
+    finalPriceINR : Nat;
     stockAvailable : Nat;
   };
 
   public type OrderItem = {
     bookId : Nat32;
     quantity : Nat;
-    priceAtPurchase : Nat;
+    priceAtPurchaseINR : Nat;
+  };
+
+  public type DeliveryInfo = {
+    companyName : Text;
+    companyAddress : Text;
+    contactNumber : Text;
+    email : Text;
+    comments : ?Text;
+  };
+
+  public type OrderStatus = {
+    #pending;
+    #inProgress;
+    #success;
+  };
+
+  public type StatusChangeEntry = {
+    timestamp : Time.Time;
+    newStatus : OrderStatus;
+    changedBy : Principal;
   };
 
   public type BookOrder = {
@@ -73,9 +102,11 @@ actor {
     buyerPrincipal : Principal;
     buyerName : Text;
     buyerContact : Text;
+    deliveryInfo : DeliveryInfo;
     items : [OrderItem];
-    totalAmount : Nat;
-    status : Text;
+    totalAmountINR : Nat;
+    status : OrderStatus;
+    statusHistory : [StatusChangeEntry];
     createdAt : Time.Time;
   };
 
@@ -97,13 +128,36 @@ actor {
     books.values().toArray();
   };
 
+  public query func getBooksByCategory(category : BookCategory) : async [Book] {
+    let filteredBooks = List.empty<Book>();
+    for (book in books.values()) {
+      if (isBookCategoryEqual(book.category, category)) {
+        filteredBooks.add(book);
+      };
+    };
+    filteredBooks.toArray();
+  };
+
+  func isBookCategoryEqual(category1 : BookCategory, category2 : BookCategory) : Bool {
+    switch (category1, category2) {
+      case (#Journals, #Journals) { true };
+      case (#ProfessionalBooks, #ProfessionalBooks) { true };
+      case (#BareActs, #BareActs) { true };
+      case (#AcademicBooks, #AcademicBooks) { true };
+      case (_, _) { false };
+    };
+  };
+
   public shared ({ caller }) func addBook(
     title : Text,
     author : Text,
+    publisher : Text,
+    yearPublished : Nat,
+    numPages : Nat,
     description : Text,
     coverImageUrl : Text,
-    category : Text,
-    originalPrice : Nat,
+    category : BookCategory,
+    originalPriceINR : Nat,
     discountPercent : Nat,
     stockAvailable : Nat,
   ) : async () {
@@ -115,12 +169,15 @@ actor {
       id = nextBookId;
       title;
       author;
+      publisher;
+      yearPublished;
+      numPages;
       description;
       coverImageUrl;
       category;
-      originalPrice;
+      originalPriceINR;
       discountPercent;
-      finalPrice = originalPrice - (originalPrice * discountPercent / 100);
+      finalPriceINR = originalPriceINR - (originalPriceINR * discountPercent / 100);
       stockAvailable;
     };
 
@@ -140,7 +197,7 @@ actor {
           updatedBook.id,
           {
             updatedBook with
-            finalPrice = updatedBook.originalPrice - (updatedBook.originalPrice * updatedBook.discountPercent / 100 : Nat);
+            finalPriceINR = updatedBook.originalPriceINR - (updatedBook.originalPriceINR * updatedBook.discountPercent / 100 : Nat);
           },
         );
       };
@@ -159,18 +216,26 @@ actor {
 
   // ---- Order functions ----
 
-  public shared ({ caller }) func placeOrder(buyerName : Text, buyerContact : Text, items : [OrderItem]) : async () {
+  public shared ({ caller }) func placeOrder(
+    buyerName : Text,
+    buyerContact : Text,
+    deliveryInfo : DeliveryInfo,
+    items : [OrderItem],
+  ) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can place orders");
     };
     if (buyerName == "" or buyerContact == "") {
       Runtime.trap("Buyer details cannot be empty");
     };
+    if (deliveryInfo.companyName == "" or deliveryInfo.companyAddress == "" or deliveryInfo.contactNumber == "" or deliveryInfo.email == "") {
+      Runtime.trap("Delivery information cannot be empty");
+    };
     if (items.size() == 0) {
       Runtime.trap("Order must contain at least one item");
     };
 
-    var totalAmount = 0;
+    var totalAmountINR = 0;
 
     for (item in items.values()) {
       switch (books.get(item.bookId)) {
@@ -182,19 +247,24 @@ actor {
           if (item.quantity > book.stockAvailable) {
             Runtime.trap("Not enough stock available for " # book.title);
           };
-          totalAmount += item.quantity * book.finalPrice;
+          totalAmountINR += item.quantity * book.finalPriceINR;
         };
       };
     };
+
+    let initialStatus : OrderStatus = #pending;
+    let emptyHistory : [StatusChangeEntry] = [];
 
     let order : BookOrder = {
       orderId = nextOrderId;
       buyerPrincipal = caller;
       buyerName;
       buyerContact;
+      deliveryInfo;
       items = items;
-      totalAmount;
-      status = "Pending";
+      totalAmountINR;
+      status = initialStatus;
+      statusHistory = emptyHistory;
       createdAt = Time.now();
     };
 
@@ -253,7 +323,7 @@ actor {
     orders.values().toArray();
   };
 
-  public shared ({ caller }) func updateOrderStatus(orderId : Nat32, newStatus : Text) : async () {
+  public shared ({ caller }) func updateOrderStatus(orderId : Nat32, newStatus : OrderStatus) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can update order status");
     };
@@ -261,13 +331,39 @@ actor {
     switch (orders.get(orderId)) {
       case (null) { Runtime.trap("Order not found") };
       case (?order) {
+        let statusChange : StatusChangeEntry = {
+          timestamp = Time.now();
+          newStatus;
+          changedBy = caller;
+        };
+
+        let updatedHistory = List.fromArray<StatusChangeEntry>(order.statusHistory);
+        updatedHistory.add(statusChange);
+
         orders.add(
           orderId,
           {
             order with
             status = newStatus;
+            statusHistory = updatedHistory.toArray();
           },
         );
+      };
+    };
+  };
+
+  public query ({ caller }) func getOrderStatusHistory(orderId : Nat32) : async [StatusChangeEntry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view order history");
+    };
+
+    switch (orders.get(orderId)) {
+      case (null) { Runtime.trap("Order not found") };
+      case (?order) {
+        if (not (AccessControl.isAdmin(accessControlState, caller)) and order.buyerPrincipal != caller) {
+          Runtime.trap("Unauthorized: You do not have permission to view this order's history");
+        };
+        order.statusHistory;
       };
     };
   };

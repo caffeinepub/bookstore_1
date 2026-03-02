@@ -8,6 +8,12 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const BookCategory = IDL.Variant({
+  'Journals' : IDL.Null,
+  'BareActs' : IDL.Null,
+  'AcademicBooks' : IDL.Null,
+  'ProfessionalBooks' : IDL.Null,
+});
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -15,28 +21,50 @@ export const UserRole = IDL.Variant({
 });
 export const Book = IDL.Record({
   'id' : IDL.Nat32,
-  'finalPrice' : IDL.Nat,
   'coverImageUrl' : IDL.Text,
   'title' : IDL.Text,
-  'originalPrice' : IDL.Nat,
+  'yearPublished' : IDL.Nat,
+  'publisher' : IDL.Text,
   'description' : IDL.Text,
   'discountPercent' : IDL.Nat,
   'author' : IDL.Text,
-  'category' : IDL.Text,
+  'originalPriceINR' : IDL.Nat,
+  'numPages' : IDL.Nat,
+  'finalPriceINR' : IDL.Nat,
+  'category' : BookCategory,
   'stockAvailable' : IDL.Nat,
 });
+export const OrderStatus = IDL.Variant({
+  'pending' : IDL.Null,
+  'success' : IDL.Null,
+  'inProgress' : IDL.Null,
+});
 export const Time = IDL.Int;
+export const DeliveryInfo = IDL.Record({
+  'email' : IDL.Text,
+  'companyName' : IDL.Text,
+  'contactNumber' : IDL.Text,
+  'comments' : IDL.Opt(IDL.Text),
+  'companyAddress' : IDL.Text,
+});
+export const StatusChangeEntry = IDL.Record({
+  'changedBy' : IDL.Principal,
+  'timestamp' : Time,
+  'newStatus' : OrderStatus,
+});
 export const OrderItem = IDL.Record({
+  'priceAtPurchaseINR' : IDL.Nat,
   'bookId' : IDL.Nat32,
   'quantity' : IDL.Nat,
-  'priceAtPurchase' : IDL.Nat,
 });
 export const BookOrder = IDL.Record({
-  'status' : IDL.Text,
+  'status' : OrderStatus,
   'createdAt' : Time,
+  'deliveryInfo' : DeliveryInfo,
+  'statusHistory' : IDL.Vec(StatusChangeEntry),
   'orderId' : IDL.Nat32,
   'buyerContact' : IDL.Text,
-  'totalAmount' : IDL.Nat,
+  'totalAmountINR' : IDL.Nat,
   'buyerPrincipal' : IDL.Principal,
   'items' : IDL.Vec(OrderItem),
   'buyerName' : IDL.Text,
@@ -53,8 +81,11 @@ export const idlService = IDL.Service({
         IDL.Text,
         IDL.Text,
         IDL.Text,
+        IDL.Nat,
+        IDL.Nat,
         IDL.Text,
         IDL.Text,
+        BookCategory,
         IDL.Nat,
         IDL.Nat,
         IDL.Nat,
@@ -68,9 +99,15 @@ export const idlService = IDL.Service({
   'getAllOrders' : IDL.Func([], [IDL.Vec(BookOrder)], ['query']),
   'getBook' : IDL.Func([IDL.Nat32], [Book], ['query']),
   'getBookStock' : IDL.Func([IDL.Nat32], [IDL.Nat], ['query']),
+  'getBooksByCategory' : IDL.Func([BookCategory], [IDL.Vec(Book)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getOrder' : IDL.Func([IDL.Nat32], [BookOrder], ['query']),
+  'getOrderStatusHistory' : IDL.Func(
+      [IDL.Nat32],
+      [IDL.Vec(StatusChangeEntry)],
+      ['query'],
+    ),
   'getOrdersByBuyer' : IDL.Func([], [IDL.Vec(BookOrder)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
@@ -78,16 +115,26 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'placeOrder' : IDL.Func([IDL.Text, IDL.Text, IDL.Vec(OrderItem)], [], []),
+  'placeOrder' : IDL.Func(
+      [IDL.Text, IDL.Text, DeliveryInfo, IDL.Vec(OrderItem)],
+      [],
+      [],
+    ),
   'restockBook' : IDL.Func([IDL.Nat32, IDL.Nat], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateBook' : IDL.Func([Book], [], []),
-  'updateOrderStatus' : IDL.Func([IDL.Nat32, IDL.Text], [], []),
+  'updateOrderStatus' : IDL.Func([IDL.Nat32, OrderStatus], [], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const BookCategory = IDL.Variant({
+    'Journals' : IDL.Null,
+    'BareActs' : IDL.Null,
+    'AcademicBooks' : IDL.Null,
+    'ProfessionalBooks' : IDL.Null,
+  });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
@@ -95,28 +142,50 @@ export const idlFactory = ({ IDL }) => {
   });
   const Book = IDL.Record({
     'id' : IDL.Nat32,
-    'finalPrice' : IDL.Nat,
     'coverImageUrl' : IDL.Text,
     'title' : IDL.Text,
-    'originalPrice' : IDL.Nat,
+    'yearPublished' : IDL.Nat,
+    'publisher' : IDL.Text,
     'description' : IDL.Text,
     'discountPercent' : IDL.Nat,
     'author' : IDL.Text,
-    'category' : IDL.Text,
+    'originalPriceINR' : IDL.Nat,
+    'numPages' : IDL.Nat,
+    'finalPriceINR' : IDL.Nat,
+    'category' : BookCategory,
     'stockAvailable' : IDL.Nat,
   });
+  const OrderStatus = IDL.Variant({
+    'pending' : IDL.Null,
+    'success' : IDL.Null,
+    'inProgress' : IDL.Null,
+  });
   const Time = IDL.Int;
+  const DeliveryInfo = IDL.Record({
+    'email' : IDL.Text,
+    'companyName' : IDL.Text,
+    'contactNumber' : IDL.Text,
+    'comments' : IDL.Opt(IDL.Text),
+    'companyAddress' : IDL.Text,
+  });
+  const StatusChangeEntry = IDL.Record({
+    'changedBy' : IDL.Principal,
+    'timestamp' : Time,
+    'newStatus' : OrderStatus,
+  });
   const OrderItem = IDL.Record({
+    'priceAtPurchaseINR' : IDL.Nat,
     'bookId' : IDL.Nat32,
     'quantity' : IDL.Nat,
-    'priceAtPurchase' : IDL.Nat,
   });
   const BookOrder = IDL.Record({
-    'status' : IDL.Text,
+    'status' : OrderStatus,
     'createdAt' : Time,
+    'deliveryInfo' : DeliveryInfo,
+    'statusHistory' : IDL.Vec(StatusChangeEntry),
     'orderId' : IDL.Nat32,
     'buyerContact' : IDL.Text,
-    'totalAmount' : IDL.Nat,
+    'totalAmountINR' : IDL.Nat,
     'buyerPrincipal' : IDL.Principal,
     'items' : IDL.Vec(OrderItem),
     'buyerName' : IDL.Text,
@@ -130,8 +199,11 @@ export const idlFactory = ({ IDL }) => {
           IDL.Text,
           IDL.Text,
           IDL.Text,
+          IDL.Nat,
+          IDL.Nat,
           IDL.Text,
           IDL.Text,
+          BookCategory,
           IDL.Nat,
           IDL.Nat,
           IDL.Nat,
@@ -145,9 +217,15 @@ export const idlFactory = ({ IDL }) => {
     'getAllOrders' : IDL.Func([], [IDL.Vec(BookOrder)], ['query']),
     'getBook' : IDL.Func([IDL.Nat32], [Book], ['query']),
     'getBookStock' : IDL.Func([IDL.Nat32], [IDL.Nat], ['query']),
+    'getBooksByCategory' : IDL.Func([BookCategory], [IDL.Vec(Book)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getOrder' : IDL.Func([IDL.Nat32], [BookOrder], ['query']),
+    'getOrderStatusHistory' : IDL.Func(
+        [IDL.Nat32],
+        [IDL.Vec(StatusChangeEntry)],
+        ['query'],
+      ),
     'getOrdersByBuyer' : IDL.Func([], [IDL.Vec(BookOrder)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
@@ -155,11 +233,15 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'placeOrder' : IDL.Func([IDL.Text, IDL.Text, IDL.Vec(OrderItem)], [], []),
+    'placeOrder' : IDL.Func(
+        [IDL.Text, IDL.Text, DeliveryInfo, IDL.Vec(OrderItem)],
+        [],
+        [],
+      ),
     'restockBook' : IDL.Func([IDL.Nat32, IDL.Nat], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateBook' : IDL.Func([Book], [], []),
-    'updateOrderStatus' : IDL.Func([IDL.Nat32, IDL.Text], [], []),
+    'updateOrderStatus' : IDL.Func([IDL.Nat32, OrderStatus], [], []),
   });
 };
 
