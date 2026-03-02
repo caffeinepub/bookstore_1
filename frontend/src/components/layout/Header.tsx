@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { ShoppingCart, BookOpen, Menu, X, User, LogOut, Loader2, Shield } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, LogOut, Loader2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '../../context/CartContext';
@@ -12,7 +12,7 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { totalItems } = useCart();
   const { identity, login, clear, loginStatus } = useInternetIdentity();
-  const { data: isAdmin } = useIsCallerAdmin();
+  const { data: isAdmin, isLoading: adminLoading } = useIsCallerAdmin();
   const { data: userProfile } = useGetCallerUserProfile();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -41,7 +41,7 @@ export default function Header() {
   const navLinks = [
     { to: '/', label: 'Catalog' },
     ...(isAuthenticated ? [{ to: '/orders', label: 'My Orders' }] : []),
-    ...(isAdmin ? [{ to: '/admin', label: 'Admin Panel' }] : []),
+    ...(isAdmin && !adminLoading ? [{ to: '/admin', label: 'Admin Panel' }] : []),
   ];
 
   return (
@@ -52,11 +52,11 @@ export default function Header() {
           <Link to="/" className="flex items-center gap-2.5 group">
             <img
               src="/assets/generated/bookstore-logo.dim_200x200.png"
-              alt="BookStore"
+              alt="Gopal Book Agency"
               className="w-9 h-9 rounded-md object-cover"
             />
             <span className="font-serif text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
-              BookStore
+              Gopal Book Agency
             </span>
           </Link>
 

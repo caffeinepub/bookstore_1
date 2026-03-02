@@ -2,12 +2,12 @@
   "frontend/src/index.css": "Global styles with warm bookshop OKLCH color palette, Crimson Text serif font import, and typography utilities for the bookstore theme.",
   "frontend/tailwind.config.js": "Extended Tailwind config with Crimson Text serif and Inter sans-serif font families, warm bookshop color tokens, and custom book shadow.",
   "frontend/src/context/CartContext.tsx": "React Context for shopping cart state with add/remove/update/clear operations, sessionStorage persistence, and BigInt-safe serialization.",
-  "frontend/src/hooks/useQueries.ts": "All React Query hooks for backend operations including books CRUD, orders, user profiles, and admin checks with proper cache invalidation.",
+  "frontend/src/hooks/useQueries.ts": "All React Query hooks for backend operations including books CRUD, orders, user profiles, and admin checks. The `useIsCallerAdmin` hook now uses `staleTime: 0` and `refetchOnMount: true` to ensure it always re-fetches after identity/actor changes, with error handling that returns `false` instead of throwing.",
   "frontend/src/components/auth/ProfileSetupModal.tsx": "First-time user profile setup modal that collects name and contact, prevents dismissal until saved, with warm bookshop styling.",
   "frontend/src/components/auth/AccessDeniedScreen.tsx": "Access denied screen for unauthorized admin access attempts with a friendly message and back-to-catalog button.",
-  "frontend/src/components/layout/Header.tsx": "Sticky responsive header with bookstore logo, navigation links, cart badge, user profile display, and login/logout button with mobile hamburger menu.",
+  "frontend/src/components/layout/Header.tsx": "Sticky responsive header with brand name, navigation links, cart badge, user profile display, and login/logout button. The Admin Panel nav link now only appears when `isAdmin` is confirmed and `adminLoading` is false, preventing premature display.",
   "frontend/src/components/layout/Layout.tsx": "Main layout wrapper composing Header, page content via Outlet, and Footer with consistent bookshop styling.",
-  "frontend/src/components/layout/Footer.tsx": "Footer with brand info, quick links, about section, copyright year, and caffeine.ai attribution with UTM tracking.",
+  "frontend/src/components/layout/Footer.tsx": "Footer with brand name updated to \"Gopal Book Agency\" in the brand section and copyright line, quick links, about section, and caffeine.ai attribution with UTM tracking.",
   "frontend/src/components/BookCard.tsx": "Reusable book card with cover image, discount badge, category tag, title, author, and price display with hover animations.",
   "frontend/src/pages/CatalogPage.tsx": "Book catalog page with hero banner, real-time search by title/author, category filter dropdown, responsive book grid, and loading skeletons.",
   "frontend/src/pages/BookDetailPage.tsx": "Book detail page using the correct nested route path `/layout/book/$id` for `useParams`, displaying full book info, price breakdown, and Add to Cart functionality.",
@@ -18,6 +18,7 @@
   "frontend/src/components/admin/BookFormModal.tsx": "Admin modal for adding/editing books with all required fields, validation, price in cents, and loading states for mutations.",
   "frontend/src/components/admin/BooksManagementTab.tsx": "Admin books table with edit/delete actions, add book button, delete confirmation dialog, and loading skeletons.",
   "frontend/src/components/admin/OrdersManagementTab.tsx": "Admin orders table with client-side search by buyer name/order ID, status badges, and date formatting.",
-  "frontend/src/pages/AdminPanelPage.tsx": "Admin panel page with permission check, tabbed interface for Books Management and Orders tabs, and access denied screen for non-admins.",
-  "frontend/src/App.tsx": "Main app with TanStack Router setup, all page routes, CartProvider and ProfileSetupModal integration, and ThemeProvider wrapper."
+  "frontend/src/pages/AdminPanelPage.tsx": "Admin panel page with improved permission check that accounts for `isInitializing` and `isLoggingIn` states from Internet Identity, showing a loading spinner during any auth/permission check phase and the AccessDeniedScreen only after all checks complete.",
+  "frontend/src/App.tsx": "Main app with TanStack Router setup, all page routes, CartProvider and ProfileSetupModal integration, and ThemeProvider wrapper.",
+  "frontend/index.html": "HTML entry point with the browser tab title updated to \"Gopal Book Agency\"."
 }

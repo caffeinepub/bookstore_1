@@ -2,128 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-build-a-book-catalog-page-that-displays-all-available-books-in-a-grid-each-book-card-shows-cover-image-title-author-category-tag-original-price-with-strikethrough-discount-badge-and-final-price-include-a-search-bar-and-category-filter",
-      "featureTitle": "Build a Book Catalog page that displays all available books in a grid. Each book card shows cover image, title, author, category tag, original price with strikethrough, discount badge, and final price. Include a search bar and category filter.",
+      "featureId": "feature-update-the-frontend-admin-check-flow-so-that-after-a-user-logs-in-with-internet-identity-the-app-immediately-reflects-their-admin-status-without-requiring-a-manual-page-refresh",
+      "featureTitle": "Update the frontend admin check flow so that after a user logs in with Internet Identity, the app immediately reflects their admin status without requiring a manual page refresh.",
       "files": [
-        "frontend/src/components/BookCard.tsx",
-        "frontend/src/pages/CatalogPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-build-a-book-detail-page-that-shows-the-full-book-description-cover-image-author-category-price-breakdown-original-price-discount-amount-final-price-and-an-add-to-cart-button-navigating-to-this-page-should-be-possible-by-clicking-a-book-card-from-the-catalog",
-      "featureTitle": "Build a Book Detail page that shows the full book description, cover image, author, category, price breakdown (original price, discount amount, final price), and an 'Add to Cart' button. Navigating to this page should be possible by clicking a book card from the catalog.",
-      "files": [
-        "frontend/src/context/CartContext.tsx",
-        "frontend/src/pages/BookDetailPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-build-an-order-cart-page-that-lists-all-books-added-by-the-user-shows-per-item-price-and-quantity-controls-displays-the-order-subtotal-and-includes-a-proceed-to-checkout-button-users-must-be-authenticated-via-internet-identity-to-access-the-cart",
-      "featureTitle": "Build an Order Cart page that lists all books added by the user, shows per-item price and quantity controls, displays the order subtotal, and includes a 'Proceed to Checkout' button. Users must be authenticated (via Internet Identity) to access the cart.",
-      "files": [
-        "frontend/src/pages/CartPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-build-a-checkout-page-where-the-authenticated-user-enters-their-name-and-contact-details-reviews-the-final-order-summary-and-clicks-place-order-to-submit-the-order-to-the-backend-show-a-loading-state-while-the-order-is-being-placed",
-      "featureTitle": "Build a Checkout page where the authenticated user enters their name and contact details, reviews the final order summary, and clicks 'Place Order' to submit the order to the backend. Show a loading state while the order is being placed.",
-      "files": [
-        "frontend/src/pages/CheckoutPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-6"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-build-an-order-confirmation-page-that-is-displayed-after-a-successful-order-placement-it-must-show-the-orderid-list-of-purchased-items-with-prices-total-amount-paid-buyer-name-contact-and-the-order-timestamp",
-      "featureTitle": "Build an Order Confirmation page that is displayed after a successful order placement. It must show the orderId, list of purchased items with prices, total amount paid, buyer name, contact, and the order timestamp.",
-      "files": [
-        "frontend/src/pages/OrderConfirmationPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-7"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-build-an-order-history-page-for-authenticated-users-that-lists-all-their-past-orders-each-entry-shows-orderid-order-date-total-amount-and-a-summary-of-items-orders-should-be-fetched-from-the-backend-using-the-buyer-s-principal",
-      "featureTitle": "Build an Order History page for authenticated users that lists all their past orders. Each entry shows orderId, order date, total amount, and a summary of items. Orders should be fetched from the backend using the buyer's principal.",
-      "files": [
-        "frontend/src/pages/OrderHistoryPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-8"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-build-a-vendor-admin-panel-accessible-only-to-a-designated-admin-principal-the-panel-must-include-1-a-books-management-tab-to-add-new-books-edit-existing-books-and-delete-books-via-a-form-and-table-2-an-orders-tab-that-shows-all-orders-in-a-searchable-table-with-columns-orderid-buyer-name-contact-items-summary-total-and-date",
-      "featureTitle": "Build a Vendor/Admin Panel accessible only to a designated admin principal. The panel must include: (1) a Books Management tab to add new books, edit existing books, and delete books via a form and table; (2) an Orders tab that shows all orders in a searchable table with columns: orderId, buyer name, contact, items summary, total, and date.",
-      "files": [
-        "frontend/src/components/admin/BookFormModal.tsx",
-        "frontend/src/components/admin/BooksManagementTab.tsx",
-        "frontend/src/components/admin/OrdersManagementTab.tsx",
+        "frontend/src/components/layout/Header.tsx",
+        "frontend/src/hooks/useQueries.ts",
         "frontend/src/pages/AdminPanelPage.tsx"
       ],
       "components": [
@@ -135,32 +18,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-9"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-apply-a-warm-bookshop-inspired-visual-theme-throughout-the-app-use-earthy-tones-warm-browns-cream-parchment-backgrounds-deep-forest-green-accents-serif-style-headings-for-book-titles-and-a-clean-card-based-layout-navigation-should-include-a-top-header-with-logo-main-nav-links-catalog-my-orders-cart-and-a-login-logout-button-ensure-the-design-is-responsive-for-mobile-and-desktop",
-      "featureTitle": "Apply a warm, bookshop-inspired visual theme throughout the app. Use earthy tones (warm browns, cream/parchment backgrounds, deep forest green accents), serif-style headings for book titles, and a clean card-based layout. Navigation should include a top header with logo, main nav links (Catalog, My Orders, Cart), and a login/logout button. Ensure the design is responsive for mobile and desktop.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/auth/AccessDeniedScreen.tsx",
-        "frontend/src/components/auth/ProfileSetupModal.tsx",
-        "frontend/src/components/layout/Header.tsx",
-        "frontend/src/components/layout/Layout.tsx",
-        "frontend/src/index.css",
-        "frontend/tailwind.config.js"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-10"
+        "REQ-2"
       ],
       "confidence": "high"
     }

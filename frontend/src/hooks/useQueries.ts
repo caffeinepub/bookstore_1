@@ -17,6 +17,7 @@ export function useGetCallerUserProfile() {
     },
     enabled: !!actor && !actorFetching && !!identity,
     retry: false,
+    staleTime: 0,
   });
 
   return {
@@ -74,12 +75,19 @@ export function useIsCallerAdmin() {
   const { identity } = useInternetIdentity();
 
   return useQuery<boolean>({
-    queryKey: ['isAdmin', identity?.getPrincipal().toString()],
+    queryKey: ['isAdmin', identity?.getPrincipal().toString() ?? 'anonymous'],
     queryFn: async () => {
       if (!actor) return false;
-      return actor.isCallerAdmin();
+      try {
+        return await actor.isCallerAdmin();
+      } catch {
+        return false;
+      }
     },
     enabled: !!actor && !isFetching,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 }
 

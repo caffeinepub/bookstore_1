@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router';
 
 export default function Footer() {
   const year = new Date().getFullYear();
-  const appId = encodeURIComponent(window.location.hostname || 'bookstore-app');
+  const appId = encodeURIComponent(window.location.hostname || 'gopal-book-agency');
 
   return (
     <footer className="bg-card border-t border-border mt-auto">
@@ -14,7 +14,7 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <BookOpen className="w-5 h-5 text-primary" />
-              <span className="font-serif text-lg font-semibold">BookStore</span>
+              <span className="font-serif text-lg font-semibold">Gopal Book Agency</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Your community bookstore. Discover great books at discounted prices.
@@ -42,7 +42,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
-          <p>© {year} BookStore. All rights reserved.</p>
+          <p>© {year} Gopal Book Agency. All rights reserved.</p>
           <p className="flex items-center gap-1.5">
             Built with <Heart className="w-3.5 h-3.5 text-destructive fill-destructive" /> using{' '}
             <a

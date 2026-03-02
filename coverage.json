@@ -1,264 +1,50 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T06:41:16.866Z",
+  "generatedAt": "2026-03-02T11:00:35.779Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 10,
-    "implemented": 8,
+    "total": 2,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Create a backend data model and API for Books with fields: id, title, author, description, coverImageUrl, category, originalPrice, discountPercent, finalPrice (computed), and stockAvailable. Support CRUD operations (create, read, update, delete) accessible to vendor/admin role.",
+        "summary": "Update the backend so that the first Internet Identity principal to log in is automatically set as the admin, or if an admin is already set, provide a way to bootstrap admin access by setting the deployer's principal as the admin on canister initialization.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
-      },
-      {
-        "id": "REQ-10",
-        "summary": "Apply a warm, bookshop-inspired visual theme throughout the app. Use earthy tones (warm browns, cream/parchment backgrounds, deep forest green accents), serif-style headings for book titles, and a clean card-based layout. Navigation should include a top header with logo, main nav links (Catalog, My Orders, Cart), and a login/logout button. Ensure the design is responsive for mobile and desktop.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/index.css",
-          "frontend/tailwind.config.js",
-          "frontend/src/components/layout/Header.tsx",
-          "frontend/src/components/layout/Layout.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "frontend/src/components/auth/AccessDeniedScreen.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/index.css",
-          "frontend/tailwind.config.js",
-          "frontend/src/components/layout/Header.tsx",
-          "frontend/src/components/layout/Layout.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "frontend/src/components/auth/AccessDeniedScreen.tsx"
-        ]
       },
       {
         "id": "REQ-2",
-        "summary": "Create a backend data model and API for Orders with fields: orderId, buyerPrincipal, buyerName, buyerContact, items (array of bookId + quantity + priceAtPurchase), totalAmount, status, and createdAt timestamp. Expose functions to place a new order, retrieve orders by buyer, and retrieve all orders (admin only).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Build a Book Catalog page that displays all available books in a grid. Each book card shows cover image, title, author, category tag, original price with strikethrough, discount badge, and final price. Include a search bar and category filter.",
+        "summary": "Update the frontend admin check flow so that after a user logs in with Internet Identity, the app immediately reflects their admin status without requiring a manual page refresh.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/CatalogPage.tsx",
-          "frontend/src/hooks/useBooks.ts",
-          "frontend/src/components/BookCard.tsx"
+          "frontend/src/hooks/useInternetIdentity.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/layout/Header.tsx",
+          "frontend/src/pages/AdminPanelPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/CatalogPage.tsx",
-          "frontend/src/components/BookCard.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Build a Book Detail page that shows the full book description, cover image, author, category, price breakdown (original price, discount amount, final price), and an 'Add to Cart' button. Navigating to this page should be possible by clicking a book card from the catalog.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/BookDetailPage.tsx",
-          "frontend/src/hooks/useBook.ts",
-          "frontend/src/context/CartContext.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/BookDetailPage.tsx",
-          "frontend/src/context/CartContext.tsx"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Build an Order Cart page that lists all books added by the user, shows per-item price and quantity controls, displays the order subtotal, and includes a 'Proceed to Checkout' button. Users must be authenticated (via Internet Identity) to access the cart.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/CartPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/CartPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Build a Checkout page where the authenticated user enters their name and contact details, reviews the final order summary, and clicks 'Place Order' to submit the order to the backend. Show a loading state while the order is being placed.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/CheckoutPage.tsx",
-          "frontend/src/hooks/usePlaceOrder.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/CheckoutPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-7",
-        "summary": "Build an Order Confirmation page that is displayed after a successful order placement. It must show the orderId, list of purchased items with prices, total amount paid, buyer name, contact, and the order timestamp.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/OrderConfirmationPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/OrderConfirmationPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-8",
-        "summary": "Build an Order History page for authenticated users that lists all their past orders. Each entry shows orderId, order date, total amount, and a summary of items. Orders should be fetched from the backend using the buyer's principal.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/OrderHistoryPage.tsx",
-          "frontend/src/hooks/useOrderHistory.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/OrderHistoryPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-9",
-        "summary": "Build a Vendor/Admin Panel accessible only to a designated admin principal. The panel must include: (1) a Books Management tab to add new books, edit existing books, and delete books via a form and table; (2) an Orders tab that shows all orders in a searchable table with columns: orderId, buyer name, contact, items summary, total, and date.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/AdminPanelPage.tsx",
-          "frontend/src/components/admin/BookFormModal.tsx",
-          "frontend/src/components/admin/BooksManagementTab.tsx",
-          "frontend/src/components/admin/OrdersManagementTab.tsx",
-          "frontend/src/hooks/useAdminBooks.ts",
-          "frontend/src/hooks/useAllOrders.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/AdminPanelPage.tsx",
-          "frontend/src/components/admin/BookFormModal.tsx",
-          "frontend/src/components/admin/BooksManagementTab.tsx",
-          "frontend/src/components/admin/OrdersManagementTab.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/layout/Header.tsx",
+          "frontend/src/pages/AdminPanelPage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/authorization/MixinAuthorization.mo",
-    "backend/authorization/access-control.mo",
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
-    "build-template/Dockerfile",
-    "build-template/LICENSE",
-    "build-template/README.md",
-    "build-template/deploy.sh",
-    "build-template/icp.yaml",
-    "build-template/package.json",
-    "build-template/pnpm-lock.yaml",
-    "build-template/pnpm-workspace.yaml",
-    "build-template/scripts/prune-unused-images.js",
-    "build-template/scripts/resize-images.js",
-    "build-template/src/backend/canister.yaml",
-    "build-template/src/backend/system-idl/aaaaa-aa.did",
-    "build-template/src/frontend/canister.yaml",
-    "build-template/src/frontend/components.json",
-    "build-template/src/frontend/env.json",
-    "build-template/src/frontend/eslint-rules/no-bigint-in-query-keys.js",
-    "build-template/src/frontend/eslint-rules/require-internet-identity-provider.js",
-    "build-template/src/frontend/eslint.config.js",
-    "build-template/src/frontend/package.json",
-    "build-template/src/frontend/postcss.config.js",
-    "build-template/src/frontend/src/components/ui/accordion.tsx",
-    "build-template/src/frontend/src/components/ui/alert-dialog.tsx",
-    "build-template/src/frontend/src/components/ui/alert.tsx",
-    "build-template/src/frontend/src/components/ui/aspect-ratio.tsx",
-    "build-template/src/frontend/src/components/ui/avatar.tsx",
-    "build-template/src/frontend/src/components/ui/badge.tsx",
-    "build-template/src/frontend/src/components/ui/breadcrumb.tsx",
-    "build-template/src/frontend/src/components/ui/button.tsx",
-    "build-template/src/frontend/src/components/ui/calendar.tsx",
-    "build-template/src/frontend/src/components/ui/card.tsx",
-    "build-template/src/frontend/src/components/ui/carousel.tsx",
-    "build-template/src/frontend/src/components/ui/chart.tsx",
-    "build-template/src/frontend/src/components/ui/checkbox.tsx",
-    "build-template/src/frontend/src/components/ui/collapsible.tsx",
-    "build-template/src/frontend/src/components/ui/command.tsx",
-    "build-template/src/frontend/src/components/ui/context-menu.tsx",
-    "build-template/src/frontend/src/components/ui/dialog.tsx",
-    "build-template/src/frontend/src/components/ui/drawer.tsx",
-    "build-template/src/frontend/src/components/ui/dropdown-menu.tsx",
-    "build-template/src/frontend/src/components/ui/form.tsx",
-    "build-template/src/frontend/src/components/ui/hover-card.tsx",
-    "build-template/src/frontend/src/components/ui/input-otp.tsx",
-    "build-template/src/frontend/src/components/ui/input.tsx",
-    "build-template/src/frontend/src/components/ui/label.tsx",
-    "build-template/src/frontend/src/components/ui/menubar.tsx",
-    "build-template/src/frontend/src/components/ui/navigation-menu.tsx",
-    "build-template/src/frontend/src/components/ui/pagination.tsx",
-    "build-template/src/frontend/src/components/ui/popover.tsx",
-    "build-template/src/frontend/src/components/ui/progress.tsx",
-    "build-template/src/frontend/src/components/ui/radio-group.tsx",
-    "build-template/src/frontend/src/components/ui/resizable.tsx",
-    "build-template/src/frontend/src/components/ui/scroll-area.tsx",
-    "build-template/src/frontend/src/components/ui/select.tsx",
-    "build-template/src/frontend/src/components/ui/separator.tsx",
-    "build-template/src/frontend/src/components/ui/sheet.tsx",
-    "build-template/src/frontend/src/components/ui/sidebar.tsx",
-    "build-template/src/frontend/src/components/ui/skeleton.tsx",
-    "build-template/src/frontend/src/components/ui/slider.tsx",
-    "build-template/src/frontend/src/components/ui/sonner.tsx",
-    "build-template/src/frontend/src/components/ui/switch.tsx",
-    "build-template/src/frontend/src/components/ui/table.tsx",
-    "build-template/src/frontend/src/components/ui/tabs.tsx",
-    "build-template/src/frontend/src/components/ui/textarea.tsx",
-    "build-template/src/frontend/src/components/ui/toggle-group.tsx",
-    "build-template/src/frontend/src/components/ui/toggle.tsx",
-    "build-template/src/frontend/src/components/ui/tooltip.tsx",
-    "build-template/src/frontend/src/hooks/use-mobile.tsx",
-    "build-template/src/frontend/src/lib/utils.ts",
-    "build-template/src/frontend/tsconfig.json",
-    "build-template/src/frontend/vite.config.js",
-    "build-template/tsconfig.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/index.css",
-    "frontend/index.html",
-    "frontend/public/assets/generated/book-placeholder.dim_300x420.png",
-    "frontend/public/assets/generated/bookstore-logo.dim_200x200.png",
-    "frontend/public/assets/generated/catalog-hero.dim_1200x400.png",
-    "frontend/src/App.tsx",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/BookCard.tsx",
-    "frontend/src/components/admin/BookFormModal.tsx",
-    "frontend/src/components/admin/BooksManagementTab.tsx",
-    "frontend/src/components/admin/OrdersManagementTab.tsx",
-    "frontend/src/components/auth/AccessDeniedScreen.tsx",
-    "frontend/src/components/auth/ProfileSetupModal.tsx",
-    "frontend/src/components/layout/Footer.tsx",
     "frontend/src/components/layout/Header.tsx",
-    "frontend/src/components/layout/Layout.tsx",
-    "frontend/src/config.ts",
-    "frontend/src/context/CartContext.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useActor.ts",
-    "frontend/src/hooks/useInternetIdentity.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
-    "frontend/src/main.tsx",
     "frontend/src/pages/AdminPanelPage.tsx",
-    "frontend/src/pages/BookDetailPage.tsx",
-    "frontend/src/pages/CartPage.tsx",
-    "frontend/src/pages/CatalogPage.tsx",
-    "frontend/src/pages/CheckoutPage.tsx",
-    "frontend/src/pages/OrderConfirmationPage.tsx",
-    "frontend/src/pages/OrderHistoryPage.tsx",
-    "frontend/src/ui-summary.json",
-    "frontend/src/utils/StorageClient.ts",
-    "frontend/src/utils/urlParams.ts",
-    "frontend/tailwind.config.js",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

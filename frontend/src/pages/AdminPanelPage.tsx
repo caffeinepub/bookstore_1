@@ -9,26 +9,27 @@ import BooksManagementTab from '../components/admin/BooksManagementTab';
 import OrdersManagementTab from '../components/admin/OrdersManagementTab';
 
 export default function AdminPanelPage() {
-  const { identity } = useInternetIdentity();
+  const { identity, isInitializing, isLoggingIn } = useInternetIdentity();
   const { isFetching: actorFetching } = useActor();
   const { data: isAdmin, isLoading: adminLoading } = useIsCallerAdmin();
 
   const isAuthenticated = !!identity;
 
-  if (!isAuthenticated || actorFetching || adminLoading) {
+  // Show loading while auth is initializing, actor is being set up, or admin check is in progress
+  const isCheckingAccess = isInitializing || isLoggingIn || actorFetching || adminLoading;
+
+  if (isCheckingAccess) {
     return (
       <div className="container mx-auto px-4 py-16 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-10 h-10 animate-spin text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">
-            {!isAuthenticated ? 'Please log in to access the admin panel.' : 'Checking permissions...'}
-          </p>
+          <p className="text-muted-foreground">Checking permissions...</p>
         </div>
       </div>
     );
   }
 
-  if (!isAdmin) {
+  if (!isAuthenticated || !isAdmin) {
     return <AccessDeniedScreen />;
   }
 

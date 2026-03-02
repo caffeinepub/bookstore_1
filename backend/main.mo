@@ -1,19 +1,22 @@
 import Array "mo:core/Array";
 import Time "mo:core/Time";
-import CoreOrder "mo:core/Order";
 import List "mo:core/List";
 import Map "mo:core/Map";
 import Text "mo:core/Text";
+import CoreOrder "mo:core/Order";
 import Nat32 "mo:core/Nat32";
 import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   // Authorization
   let accessControlState = AccessControl.initState();
+
   include MixinAuthorization(accessControlState);
 
   // User Profile
