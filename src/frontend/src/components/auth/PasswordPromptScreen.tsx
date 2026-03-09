@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BookOpen, Lock } from "lucide-react";
+import { BookOpen, Loader2, Lock } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 
@@ -23,7 +23,6 @@ export default function PasswordPromptScreen({
     setIsSubmitting(true);
     setError("");
 
-    // Small delay for UX feedback
     setTimeout(() => {
       if (password === ADMIN_PASSWORD) {
         sessionStorage.setItem("adminAuthenticated", "true");
@@ -83,7 +82,14 @@ export default function PasswordPromptScreen({
             className="w-full"
             disabled={isSubmitting || !password}
           >
-            {isSubmitting ? "Verifying..." : "Access Admin Panel"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              "Access Admin Panel"
+            )}
           </Button>
         </form>
 

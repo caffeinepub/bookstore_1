@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   BookOpen,
+  DoorOpen,
   Loader2,
   LogIn,
   LogOut,
@@ -14,15 +15,27 @@ import { useCart } from "../../context/CartContext";
 import { useInternetIdentity } from "../../hooks/useInternetIdentity";
 import { useGetCallerUserProfile } from "../../hooks/useQueries";
 
+function isAdminAuthenticated(): boolean {
+  return sessionStorage.getItem("adminAuthenticated") === "true";
+}
+
 export default function Header() {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { totalItems } = useCart();
   const { data: userProfile } = useGetCallerUserProfile();
+  const routerState = useRouterState();
 
   const isAuthenticated = !!identity;
   const isLoggingIn = loginStatus === "logging-in";
+  const isAdminPage = routerState.location.pathname === "/admin";
+  const adminLoggedIn = isAdminPage && isAdminAuthenticated();
+
+  const handleAdminExit = () => {
+    sessionStorage.removeItem("adminAuthenticated");
+    navigate({ to: "/" });
+  };
 
   const handleAuth = async () => {
     if (isAuthenticated) {
@@ -106,30 +119,43 @@ export default function Header() {
             </span>
           )}
 
-          {/* Login/Logout */}
-          <Button
-            variant={isAuthenticated ? "outline" : "default"}
-            size="sm"
-            onClick={handleAuth}
-            disabled={isLoggingIn}
-          >
-            {isLoggingIn ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-                <span className="hidden sm:inline">Logging in...</span>
-              </>
-            ) : isAuthenticated ? (
-              <>
-                <LogOut className="w-4 h-4 sm:mr-1.5" />
-                <span className="hidden sm:inline">Logout</span>
-              </>
-            ) : (
-              <>
-                <LogIn className="w-4 h-4 sm:mr-1.5" />
-                <span className="hidden sm:inline">Login</span>
-              </>
-            )}
-          </Button>
+          {/* Admin Exit / Login/Logout */}
+          {adminLoggedIn ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleAdminExit}
+              data-ocid="header.admin_exit.button"
+            >
+              <DoorOpen className="w-4 h-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">Exit Admin</span>
+            </Button>
+          ) : (
+            <Button
+              variant={isAuthenticated ? "outline" : "default"}
+              size="sm"
+              onClick={handleAuth}
+              disabled={isLoggingIn}
+              data-ocid="header.auth.button"
+            >
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                  <span className="hidden sm:inline">Logging in...</span>
+                </>
+              ) : isAuthenticated ? (
+                <>
+                  <LogOut className="w-4 h-4 sm:mr-1.5" />
+                  <span className="hidden sm:inline">Logout</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4 sm:mr-1.5" />
+                  <span className="hidden sm:inline">Login</span>
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </header>

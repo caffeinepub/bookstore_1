@@ -20,7 +20,10 @@ import { Loader2 } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { type Book, BookCategory } from "../../backend";
-import { useAddBook, useUpdateBook } from "../../hooks/useQueries";
+import {
+  useAdminAddBook,
+  useAdminUpdateBook,
+} from "../../hooks/useAdminQueries";
 
 interface BookFormModalProps {
   open: boolean;
@@ -54,8 +57,8 @@ export default function BookFormModal({
   onClose,
   editBook,
 }: BookFormModalProps) {
-  const addBookMutation = useAddBook();
-  const updateBookMutation = useUpdateBook();
+  const addBookMutation = useAdminAddBook();
+  const updateBookMutation = useAdminUpdateBook();
   const [form, setForm] = useState(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
 

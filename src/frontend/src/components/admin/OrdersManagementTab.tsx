@@ -25,10 +25,10 @@ import type React from "react";
 import { useState } from "react";
 import { type BookOrder, OrderStatus } from "../../backend";
 import {
-  useGetAllOrders,
-  useOrderStatusHistory,
-  useUpdateOrderStatus,
-} from "../../hooks/useQueries";
+  useAdminGetAllOrders,
+  useAdminUpdateOrderStatus,
+} from "../../hooks/useAdminQueries";
+import { useOrderStatusHistory } from "../../hooks/useQueries";
 
 const formatINR = (amount: number | bigint) =>
   `₹${Number(amount).toLocaleString("en-IN")}`;
@@ -81,7 +81,7 @@ function OrderRow({ order }: { order: BookOrder }) {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>(
     order.status,
   );
-  const updateStatusMutation = useUpdateOrderStatus();
+  const updateStatusMutation = useAdminUpdateOrderStatus();
   const { data: statusHistory } = useOrderStatusHistory(
     expanded ? order.orderId : -1,
   );
@@ -282,7 +282,7 @@ function OrderRow({ order }: { order: BookOrder }) {
 }
 
 export default function OrdersManagementTab() {
-  const { data: orders, isLoading } = useGetAllOrders();
+  const { data: orders, isLoading } = useAdminGetAllOrders();
   const [search, setSearch] = useState("");
 
   if (isLoading) {

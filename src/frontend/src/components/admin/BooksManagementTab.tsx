@@ -22,7 +22,10 @@ import {
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { type Book, BookCategory } from "../../backend";
-import { useDeleteBook, useGetAllBooks } from "../../hooks/useQueries";
+import {
+  useAdminDeleteBook,
+  useAdminGetAllBooks,
+} from "../../hooks/useAdminQueries";
 import BookFormModal from "./BookFormModal";
 
 const categoryLabels: Record<string, string> = {
@@ -36,8 +39,8 @@ const formatINR = (amount: number | bigint) =>
   `₹${Number(amount).toLocaleString("en-IN")}`;
 
 export default function BooksManagementTab() {
-  const { data: books, isLoading } = useGetAllBooks();
-  const deleteBookMutation = useDeleteBook();
+  const { data: books, isLoading } = useAdminGetAllBooks();
+  const deleteBookMutation = useAdminDeleteBook();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editBook, setEditBook] = useState<Book | null>(null);
   const [deleteBookId, setDeleteBookId] = useState<number | null>(null);
